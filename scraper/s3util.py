@@ -3,10 +3,10 @@ import os
 import json
 
 
-def upload_to_s3(syllabus: dict, dept: str):
+def upload_to_s3(syllabus, dept):
     """
     Upload the syllabus info of the department to s3
-    :param syllabus: dictionary representation of the syllabus info
+    :param syllabus: iterator of course info
     :param dept: abbr of the department. e.g. "PSE"
     :return: dict :=
         {

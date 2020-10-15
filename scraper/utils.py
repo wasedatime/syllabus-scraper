@@ -1,6 +1,7 @@
 import re
 import datetime
 import unicodedata
+import timeit
 
 from scraper.const import location_name_map, dept_name_map
 
@@ -33,4 +34,18 @@ def build_url(dept, page, lang):
 
 
 def to_half_width(s):
+    """
+    Converts zenkaku to hankaku
+    :param s:
+    :return:
+    """
     return unicodedata.normalize('NFKC', s)
+
+
+def timer(func):
+    def measure(*args, **kwargs):
+        start_time = timeit.default_timer()
+        func(*args, **kwargs)
+        elapsed = timeit.default_timer() - start_time
+        print(f"{func.__name__} took {elapsed} seconds to complete.")
+    return measure

@@ -1,5 +1,5 @@
 import json
-
+import scraper
 
 def handler(event, context):
     """

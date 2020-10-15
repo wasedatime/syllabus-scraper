@@ -26,19 +26,19 @@ def scrape_catalog(dept, page):
     :param page: page number (starts from 1)
     :return: list of course keys
     """
-    course_keys = []
     url = build_url(dept, page, 'en')
     body = requests.get(url, headers=header).content
-    clist = html.fromstring(body).xpath(
-        "//table[@class='ct-vh']//tbody/tr"
-    )
-    for i in range(1, len(clist)):
-        key = re.search(r"\w{28}", clist[i].xpath(f'td[3]/a/@onclick')[0]).group(0)
-        course_keys.append(key)
+    clist = html.fromstring(body).xpath("//table[@class='ct-vh']//tbody/tr")
+    course_keys = [re.search(r"\w{28}", clist[i].xpath(f'td[3]/a/@onclick')[0]).group(0) for i in range(1, len(clist))]
     return course_keys
 
 
-def scrape_course(dept, course_key):
+def scrape_course(course_key):
+    """
+    Get the detail of a course
+    :param course_key:
+    :return: dict
+    """
     url_en = f"https://www.wsl.waseda.jp/syllabus/JAA104.php?pKey={course_key}&pLng=en"
     url_jp = f"https://www.wsl.waseda.jp/syllabus/JAA104.php?pKey={course_key}&pLng=jp"
     requests.get(url_en)
