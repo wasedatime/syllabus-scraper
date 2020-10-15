@@ -1,6 +1,7 @@
 import json
 import scraper
 
+
 def handler(event, context):
     """
     Lambda function handler

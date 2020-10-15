@@ -37,7 +37,28 @@ def scrape_course(course_key):
     """
     Get the detail of a course
     :param course_key:
-    :return: dict
+    :return: dict :=
+        {
+            "id": 'string',
+            "code": 'string',
+            "instructor": 'string',
+            "instructor_jp": 'string',
+            "keys": [{"school":'string',"key":'string'}],
+            "lang": 'JP'|'EN'|...|'Other',
+            "occurrences": [{
+                            "day":'integer',
+                            "start_period":'integer',
+                            "end_period":'integer',
+                            "building":'string',
+                            "classroom":'string',
+                            "location":'string'
+                            }],
+            "term": 'springSem'|'fallSem'|...,
+            "title": 'string',
+            "title_jp": 'string',
+            "year": 'integer',
+            "has_evals": 'boolean'
+        }
     """
     url_en = f"https://www.wsl.waseda.jp/syllabus/JAA104.php?pKey={course_key}&pLng=en"
     url_jp = f"https://www.wsl.waseda.jp/syllabus/JAA104.php?pKey={course_key}&pLng=jp"
