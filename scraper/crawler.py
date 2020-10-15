@@ -25,7 +25,7 @@ class SyllabusCrawler:
         pages = get_max_page(self.dept)
         course_pages = run_concurrently(self.scrape_catalog, range(pages))
         course_keys = (key for page in course_pages for key in page)
-
+        courses = run_concurrently(self.scrape_course, course_keys)
         pass
 
     def scrape_catalog(self, page):
@@ -34,7 +34,7 @@ class SyllabusCrawler:
         :param page: page number (starts from 1)
         :return: list of course keys
         """
-        url = build_url(self.dept, page+1, 'en')
+        url = build_url(self.dept, page + 1, 'en')
         body = requests.get(url, headers=header).content
         clist = html.fromstring(body).xpath("//table[@class='ct-vh']//tbody/tr")
         return [re.search(r"\w{28}", clist[i].xpath(f'td[3]/a[1]/@onclick')[0]).group(0) for i in range(1, len(clist))]
@@ -66,8 +66,9 @@ class SyllabusCrawler:
                 "has_evals": 'boolean'
             }
         """
+        requirements = self.task["additional_info"]
         url_en = f"https://www.wsl.waseda.jp/syllabus/JAA104.php?pKey={course_key}&pLng=en"
         url_jp = f"https://www.wsl.waseda.jp/syllabus/JAA104.php?pKey={course_key}&pLng=jp"
-        parsed = html.fromstring(requests.get(url_en,headers=header).content)
+        parsed = html.fromstring(requests.get(url_en, headers=header).content)
         title = parsed.xpath("//body/form[@name='cForm']/div/div/div/div/div/div/div/div/div/div/div/div/div/div/div"
                              "/div/div/div/table/tbody/tr[2]/td[1]/div[1]/text()")[0]
