@@ -1,9 +1,11 @@
 import re
 import datetime
+import requests
 import unicodedata
-import timeit
+from concurrent.futures import ThreadPoolExecutor, wait, as_completed
+from lxml import html
 
-from scraper.const import location_name_map, dept_name_map
+from scraper.const import location_name_map, dept_name_map, header
 
 
 def rename_location(loc):
@@ -33,6 +35,19 @@ def build_url(dept, page, lang):
     return f"https://www.wsl.waseda.jp/syllabus/JAA103.php?pYear={year}&p_gakubu={param}&p_page={page}&p_number=100&pLng={lang}"
 
 
+def get_max_page(dept):
+    """
+    Get the max page number for a department
+    :param dept: department
+    :return: int
+    """
+    url = build_url(dept, 1, 'en')
+    print(url)
+    body = requests.get(url, headers=header).content
+    last = html.fromstring(body).xpath("//table[@class='t-btn']//table[@class='t-btn']//a/text()")[-1]
+    return int(last)
+
+
 def to_half_width(s):
     """
     Converts zenkaku to hankaku
@@ -42,10 +57,13 @@ def to_half_width(s):
     return unicodedata.normalize('NFKC', s)
 
 
-def timer(func):
-    def measure(*args, **kwargs):
-        start_time = timeit.default_timer()
-        func(*args, **kwargs)
-        elapsed = timeit.default_timer() - start_time
-        print(f"{func.__name__} took {elapsed} seconds to complete.")
-    return measure
+def run_concurrently(func, tasks):
+    """
+    Scrape and process data concurrently
+    :param tasks: iterator of tasks
+    :param func: scraping function
+    :return: iterator of the results
+    """
+    with ThreadPoolExecutor() as executor:
+        wait_list = [executor.submit(func, t) for t in tasks]
+    return (page.result() for page in as_completed(wait_list))
