@@ -64,7 +64,6 @@ class SyllabusCrawler:
         # requirements = self.task["additional_info"]
         url_en = build_url(lang='en', course_id=course_id)
         url_jp = build_url(lang='jp', course_id=course_id)
-        print(url_en)
         parsed_en = html.fromstring(requests.get(url_en, headers=header).content)
         parsed_jp = html.fromstring(requests.get(url_jp, headers=header).content)
         info_en = parsed_en.xpath(query["info_table"])[0]
