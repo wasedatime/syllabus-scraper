@@ -23,9 +23,13 @@ class SyllabusCrawler:
 
     def execute(self):
         pages = get_max_page(self.dept)
-        course_pages = run_concurrently(self.scrape_catalog, range(pages))
+        course_pages = [self.scrape_catalog(p) for p in range(pages)]
+        # course_pages = run_concurrently(self.scrape_catalog, range(pages))
         course_ids = (course_id for page in course_pages for course_id in page)  # flatten course_id list
-        courses = run_concurrently(self.scrape_course, course_ids)
+       
+        courses = [self.scrape_course(p) for p in course_ids]
+        # courses = run_concurrently(self.scrape_course, course_ids)
+        
         return courses
 
     def scrape_catalog(self, page):
