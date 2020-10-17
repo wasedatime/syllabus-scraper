@@ -1,2 +1,2 @@
-# syllabus_scraper
-a web scraper for scraping Waseda university syllabus. Using AWS S3
+# syllabus-scraper
+A web scraper for scraping Waseda University syllabus.
