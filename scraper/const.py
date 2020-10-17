@@ -87,3 +87,28 @@ header = {
     "Pragma": "no-cache",
     "User-Agent": random.choice(user_agents)
 }
+
+query = {
+    # used in course catalog page
+    "page_num": "//table[@class='t-btn']//table[@class='t-btn']//a/text()",
+    "course_list": "//table[@class='ct-vh']//tbody/tr",
+    "course_id": "td[3]/a[1]/@onclick",
+    # used in course detail page
+    "info_table": "//div[@id='cEdit']//div[1]//div[1]//div[1]//div[1]//div[1]//div[2]//table[1]//tbody[1]",
+    "title": "tr[2]/td[1]/div[1]/text()",
+    "instructor": "tr[3]/td[1]/text()",
+    "occurrence": "tr[4]/td[1]/text()",
+    "category": "tr[5]/td[1]/text()",
+    "min_year": "tr[5]/td[2]/text()",
+    "credit": "tr[5]/td[3]/text()",
+    "classroom": "tr[6]//td[1]/text()",
+    "campus": "tr[6]//td[2]/text()",
+    "lang": "tr[8]/td[1]/text()",
+    "code": "tr[9]/td[1]/text()",
+    "level": "tr[13]/td[1]/text()",
+    "type": "tr[13]/td[2]/text()",
+    "text_table": "/html[1]/body[1]/form[1]/div[1]/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/"
+                  "div[1]/div[2]/div[2]/div[1]/div[2]/div[1]/div[1]/div[1]/div[1]/div[2]/table[1]/tbody[1]/tr",
+    "row_name": "th[1]/text()",
+    "row_content": "td[1]/text()"
+}
