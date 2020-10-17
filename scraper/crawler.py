@@ -78,7 +78,7 @@ class SyllabusCrawler:
             "lang": info_en.xpath(query["lang"])[0],
             "term": parse_occurrences(info_en.xpath(query["occurrence"])[0])[0],
             "occurrences": parse_occurrences(info_en.xpath(query["occurrence"])[0])[1],
-            "location": rename_location(info_en.xpath(query["classroom"])),
-            "min_year": parse_min_year(info_en.xpath(query["min_year"])),
+            "location": rename_location(info_en.xpath(query["classroom"])[0]),
+            "min_year": parse_min_year(info_en.xpath(query["min_year"])[0]),
             "code": info_en.xpath(query["code"])[0]
         }
