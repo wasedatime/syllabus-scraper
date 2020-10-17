@@ -61,7 +61,7 @@ class SyllabusCrawler:
                 "code": 'string',
             }
         """
-        requirements = self.task["additional_info"]
+        # requirements = self.task["additional_info"]
         url_en = build_url(lang='en', course_id=course_id)
         url_jp = build_url(lang='jp', course_id=course_id)
         parsed_en = html.fromstring(requests.get(url_en, headers=header).content)

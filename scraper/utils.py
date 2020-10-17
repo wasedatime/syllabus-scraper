@@ -49,7 +49,6 @@ def get_max_page(dept):
     :return: int
     """
     url = build_url(dept, 1, 'en')
-    print(url)
     body = requests.get(url, headers=header).content
     last = html.fromstring(body).xpath(query["page_num"])[-1]
     return int(last)
