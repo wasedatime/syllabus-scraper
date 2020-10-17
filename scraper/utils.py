@@ -105,10 +105,12 @@ def parse_occurrences(o):
     :param o: raw string
     :return: term and occurrence(list)
     """
-    term_occ_pair = o.split("  ")
-    term = term_occ_pair[0]
-    occ_matches = re.findall(r'0\d:(Mon|Tue|Wed|Thur|Fri|Sat|Sun)\.(\d)', term_occ_pair[1])
-    occurrences = [{"day": weekday_to_int(match.group(1)), "period": int(match.group(2))} for match in occ_matches]
+    try:
+        (term, occ) = o.split(u'\xa0'u'\xa0')
+    except ValueError:
+        return "", []
+    occ_matches = re.finditer(r'0\d:(Mon|Tue|Wed|Thur|Fri|Sat|Sun)\.(\d)', occ)
+    occurrences = [{"day": match.group(1), "period": int(match.group(2))} for match in occ_matches]
     return term, occurrences
 
 
