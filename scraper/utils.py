@@ -120,7 +120,7 @@ def run_concurrently(func, tasks):
     :param func: scraping function
     :return: iterator of the results
     """
-    with ThreadPoolExecutor() as executor:
+    with ThreadPoolExecutor(max_workers=32) as executor:
         wait_list = [executor.submit(func, t) for t in tasks]
     return (page.result() for page in as_completed(wait_list))
 
