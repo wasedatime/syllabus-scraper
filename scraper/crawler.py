@@ -2,7 +2,8 @@ from lxml import html
 import requests
 import re
 
-from scraper.utils import build_url, get_max_page, run_concurrently, parse_occurrences, rename_location, parse_min_year
+from scraper.utils import build_url, get_max_page, run_concurrently, parse_occurrences, rename_location, parse_min_year, \
+    to_half_width
 from scraper.const import header, query
 
 
@@ -22,8 +23,12 @@ class SyllabusCrawler:
         self.task = task
 
     def execute(self):
+        """
+        Execute the crawler
+        :return: list of courses
+        """
         pages = get_max_page(self.dept)
-        course_pages = run_concurrently(self.scrape_catalog, range(1))
+        course_pages = run_concurrently(self.scrape_catalog, range(pages))
         course_ids = (course_id for page in course_pages for course_id in page)  # flatten course_id list
         courses = run_concurrently(self.scrape_course, course_ids)
         return courses
@@ -68,17 +73,18 @@ class SyllabusCrawler:
         parsed_jp = html.fromstring(requests.get(url_jp, headers=header).content)
         info_en = parsed_en.xpath(query["info_table"])[0]
         info_jp = parsed_jp.xpath(query["info_table"])[0]
-        print(info_en.xpath(query["occurrence"])[0])
+
+        term, occ = parse_occurrences(info_en.xpath(query["occurrence"])[0])
 
         return {
             "id": course_id,
             "title": info_en.xpath(query["title"])[0],
-            "title_jp": info_jp.xpath(query["title"])[0],
+            "title_jp": to_half_width(info_jp.xpath(query["title"])[0]),
             "instructor": info_en.xpath(query["instructor"])[0],
-            "instructor_jp": info_jp.xpath(query["instructor"])[0],
+            "instructor_jp": to_half_width(info_jp.xpath(query["instructor"])[0]),
             "lang": info_en.xpath(query["lang"])[0],
-            "term": parse_occurrences(info_en.xpath(query["occurrence"])[0])[0],
-            "occurrences": parse_occurrences(info_en.xpath(query["occurrence"])[0])[1],
+            "term": term,
+            "occurrences": occ,
             "location": rename_location(info_en.xpath(query["classroom"])[0]),
             "min_year": parse_min_year(info_en.xpath(query["min_year"])[0]),
             "code": info_en.xpath(query["code"])[0]

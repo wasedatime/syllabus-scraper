@@ -100,7 +100,6 @@ def parse_min_year(eligible_year):
 
 def parse_occurrences(o):
     """
-    TODO Validate
     Extract term and occurrences(day and period) from raw data
     :param o: raw string
     :return: term and occurrence(list)
@@ -108,7 +107,7 @@ def parse_occurrences(o):
     try:
         (term, occ) = o.split(u'\xa0'u'\xa0')
     except ValueError:
-        return "", []
+        return o, []
     occ_matches = re.finditer(r'0\d:(Mon|Tue|Wed|Thur|Fri|Sat|Sun)\.(\d)', occ)
     occurrences = [{"day": match.group(1), "period": int(match.group(2))} for match in occ_matches]
     return term, occurrences
