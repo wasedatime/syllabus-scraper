@@ -27,3 +27,4 @@ __all__ = ["run_concurrently", "upload_to_s3", "dept_name_map"]
 from scraper.const import dept_name_map
 from scraper.s3util import upload_to_s3
 from scraper.utils import run_concurrently
+from scraper.crawler import SyllabusCrawler
