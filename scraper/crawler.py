@@ -23,7 +23,7 @@ class SyllabusCrawler:
 
     def execute(self):
         pages = get_max_page(self.dept)
-        course_pages = run_concurrently(self.scrape_catalog, range(pages))
+        course_pages = run_concurrently(self.scrape_catalog, range(1))
         course_ids = (course_id for page in course_pages for course_id in page)  # flatten course_id list
         courses = run_concurrently(self.scrape_course, course_ids)
         return courses
@@ -68,6 +68,7 @@ class SyllabusCrawler:
         parsed_jp = html.fromstring(requests.get(url_jp, headers=header).content)
         info_en = parsed_en.xpath(query["info_table"])[0]
         info_jp = parsed_jp.xpath(query["info_table"])[0]
+        print(info_en.xpath(query["occurrence"])[0])
 
         return {
             "id": course_id,
