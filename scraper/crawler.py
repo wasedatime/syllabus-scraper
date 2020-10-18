@@ -8,26 +8,6 @@ from scraper.utils import *
 from scraper.const import header, query, adapter
 
 
-async def fetch(url, session):
-    print(url)
-    async with session.get(url[0]) as resp_en:
-        en = await resp_en.read()
-    async with session.get(url[1]) as resp_jp:
-        jp = await resp_jp.read()
-    return (en, jp)
-
-
-async def run(page):
-    resps = []
-    # Fetch all responses within one Client session,
-    # keep connection alive for all requests.
-    async with ClientSession() as session:
-        for c in page:
-            url = (build_url(course_id=c, lang='en'), build_url(course_id=c, lang='jp'))
-            resp = await fetch(url, session)
-            resps.append(resp)
-    return resps
-
 # loop = asyncio.get_event_loop()
 # future = asyncio.ensure_future(run(4))
 # loop.run_until_complete(future)
@@ -57,12 +37,12 @@ class SyllabusCrawler:
         :return: list of courses
         """
         pages = get_max_page(self.dept)
-        course_pages = run_concurrently(self.scrape_catalog, range(pages))
+        course_pages = list(run_concurrently(self.scrape_catalog, range(pages)))
         # course_ids = (course_id for page in course_pages for course_id in page)  # flatten course_id list
         # courses = run_concurrently(self.scrape_course, course_ids)
-        c = asyncio.run(run_concurrently2(run, course_pages))
-        print(len(c))
-        return c
+        loops = [asyncio.new_event_loop() for i in range(pages)]
+        results = run_concurrently2(course_pages, loops)
+        return results
 
     def scrape_catalog(self, page):
         """

@@ -22,7 +22,7 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 """
 
-__all__ = ["run_concurrently", "upload_to_s3", "dept_name_map"]
+__all__ = ["SyllabusCrawler", "run_concurrently", "upload_to_s3", "dept_name_map"]
 
 from scraper.const import dept_name_map
 from scraper.s3util import upload_to_s3

@@ -8,8 +8,23 @@ import unicodedata
 from lxml import html
 
 from scraper.const import location_name_map, dept_name_map, header, query
-from scraper.crawler import run
+from aiohttp import ClientSession
 
+async def fetch(url, session):
+    async with session.get(url[0]) as resp_en:
+        en = await resp_en.read()
+    return en
+
+
+async def run(page):
+    async with ClientSession() as session:
+        tasks = []
+        for c in page:
+            url = (build_url(course_id=c, lang='en'), build_url(course_id=c, lang='jp'))
+            task = asyncio.ensure_future(fetch(url, session))
+            tasks.append(task)
+        resp = await asyncio.gather(*tasks)
+    return resp
 
 def rename_location(loc):
     """
@@ -126,7 +141,7 @@ def run_concurrently(func, tasks):
         wait_list = [executor.submit(func, t) for t in tasks]
     return (page.result() for page in as_completed(wait_list))
 
-async def run_concurrently2(func, tasks):
+def run_concurrently2(tasks, loops):
     """
     Scrape and process data concurrently
     :param tasks: iterator of tasks
@@ -134,9 +149,22 @@ async def run_concurrently2(func, tasks):
     :return: iterator of the results
     """
     with ThreadPoolExecutor(max_workers=32) as executor:
-        loop = asyncio.get_event_loop()
-        pages = [await loop.run_in_executor(executor, run, p) for p in tasks]
-    return pages
+        wait_list = []
+        i = 0
+        for t in tasks:
+            wait_list.append(executor.submit(run_routines, t, loops[i]))
+            i = i+1
+    return [page.result() for page in as_completed(wait_list)]
+
+def run_routines(page, loop):
+    """
+    Scrape and process data concurrently
+    :param tasks: iterator of tasks
+    :param func: scraping function
+    :return: iterator of the results
+    """
+    asyncio.set_event_loop(loop)
+    return loop.run_until_complete(run(page))
 
 def weekday_to_int(day):
     w_t_n = {
