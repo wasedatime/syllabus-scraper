@@ -3,10 +3,12 @@ import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import urllib.request as requests
 
+import asyncio
 import unicodedata
 from lxml import html
 
 from scraper.const import location_name_map, dept_name_map, header, query
+from scraper.crawler import run
 
 
 def rename_location(loc):
@@ -124,6 +126,17 @@ def run_concurrently(func, tasks):
         wait_list = [executor.submit(func, t) for t in tasks]
     return (page.result() for page in as_completed(wait_list))
 
+async def run_concurrently2(func, tasks):
+    """
+    Scrape and process data concurrently
+    :param tasks: iterator of tasks
+    :param func: scraping function
+    :return: iterator of the results
+    """
+    with ThreadPoolExecutor(max_workers=32) as executor:
+        loop = asyncio.get_event_loop()
+        pages = [await loop.run_in_executor(executor, run, p) for p in tasks]
+    return pages
 
 def weekday_to_int(day):
     w_t_n = {

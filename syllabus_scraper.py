@@ -1,4 +1,7 @@
 import json
+
+import asyncio
+
 import scraper
 import time
 
@@ -16,5 +19,5 @@ def handler(event, context):
 if __name__ == '__main__':
     start = time.time()
     cjl = scraper.SyllabusCrawler('CJL')
-    list(cjl.execute())
+    print(cjl.execute())
     print(time.time() - start)
