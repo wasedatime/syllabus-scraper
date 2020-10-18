@@ -1,7 +1,7 @@
 import datetime
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-import requests as requests
+import urllib.request as requests
 
 import unicodedata
 from lxml import html
@@ -49,7 +49,7 @@ def get_max_page(dept):
     :return: int
     """
     url = build_url(dept, 1, 'en')
-    body = requests.get(url, headers=header).content
+    body = requests.urlopen(url).read()
     last = html.fromstring(body).xpath(query["page_num"])[-1]
     return int(last)
 

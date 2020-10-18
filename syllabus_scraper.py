@@ -1,7 +1,6 @@
 import json
-import boto3
-
 import scraper
+import time
 
 
 def handler(event, context):
@@ -12,3 +11,10 @@ def handler(event, context):
     :return:
     """
     return None
+
+
+if __name__ == '__main__':
+    start = time.time()
+    cjl = scraper.SyllabusCrawler('CJL')
+    list(cjl.execute())
+    print(time.time() - start)

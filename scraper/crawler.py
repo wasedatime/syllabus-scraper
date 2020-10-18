@@ -1,6 +1,5 @@
 from lxml import html
-import requests as requests
-import re
+import urllib.request as requests
 import time
 
 from scraper.utils import *
@@ -21,9 +20,9 @@ class SyllabusCrawler:
         """
         self.dept = dept
         self.task = task
-        self.session = requests.Session()
-        self.session.headers.update(header)
-        self.session.mount('https://', adapter)
+        # self.session = requests.Session()
+        # self.session.headers.update(header)
+        # self.session.mount('https://', adapter)
 
     def execute(self):
         """
@@ -43,7 +42,7 @@ class SyllabusCrawler:
         :return: list of course ids
         """
         url = build_url(self.dept, page + 1, 'en')
-        body = self.session.get(url).content
+        body = requests.urlopen(url).read()
         clist = html.fromstring(body).xpath(query["course_list"])
         return [re.search(r"\w{28}", clist[i].xpath(query["course_id"])[0]).group(0) for i in range(1, len(clist))]
 
@@ -73,8 +72,8 @@ class SyllabusCrawler:
         url_en = build_url(lang='en', course_id=course_id)
         url_jp = build_url(lang='jp', course_id=course_id)
         # TODO possible optimization
-        parsed_en = html.fromstring(self.session.get(url_en).content)
-        parsed_jp = html.fromstring(self.session.get(url_jp).content)
+        parsed_en = html.fromstring(requests.urlopen(url_en).read())
+        parsed_jp = html.fromstring(requests.urlopen(url_jp).read())
         info_en = parsed_en.xpath(query["info_table"])[0]
         info_jp = parsed_jp.xpath(query["info_table"])[0]
 
