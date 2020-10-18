@@ -30,14 +30,10 @@ class SyllabusCrawler:
         Execute the crawler
         :return: list of courses
         """
-        t1 = time.time()
         pages = get_max_page(self.dept)
         course_pages = run_concurrently(self.scrape_catalog, range(pages))
-        t2 = time.time()
-        print(t2 - t1)
         course_ids = (course_id for page in course_pages for course_id in page)  # flatten course_id list
         courses = run_concurrently(self.scrape_course, course_ids)
-        print(time.time() - t2)
         return courses
 
     def scrape_catalog(self, page):
