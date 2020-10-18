@@ -1,10 +1,10 @@
 from lxml import html
-import requests
+import requests as requests
 import re
+import time
 
-from scraper.utils import build_url, get_max_page, run_concurrently, parse_occurrences, rename_location, parse_min_year, \
-    to_half_width
-from scraper.const import header, query
+from scraper.utils import *
+from scraper.const import header, query, adapter
 
 
 class SyllabusCrawler:
@@ -21,16 +21,23 @@ class SyllabusCrawler:
         """
         self.dept = dept
         self.task = task
+        self.session = requests.Session()
+        self.session.headers.update(header)
+        self.session.mount('https://', adapter)
 
     def execute(self):
         """
         Execute the crawler
         :return: list of courses
         """
+        t1 = time.time()
         pages = get_max_page(self.dept)
         course_pages = run_concurrently(self.scrape_catalog, range(pages))
+        t2 = time.time()
+        print(t2 - t1)
         course_ids = (course_id for page in course_pages for course_id in page)  # flatten course_id list
         courses = run_concurrently(self.scrape_course, course_ids)
+        print(time.time() - t2)
         return courses
 
     def scrape_catalog(self, page):
@@ -40,7 +47,7 @@ class SyllabusCrawler:
         :return: list of course ids
         """
         url = build_url(self.dept, page + 1, 'en')
-        body = requests.get(url, headers=header).content
+        body = self.session.get(url).content
         clist = html.fromstring(body).xpath(query["course_list"])
         return [re.search(r"\w{28}", clist[i].xpath(query["course_id"])[0]).group(0) for i in range(1, len(clist))]
 
@@ -69,8 +76,9 @@ class SyllabusCrawler:
         # requirements = self.task["additional_info"]
         url_en = build_url(lang='en', course_id=course_id)
         url_jp = build_url(lang='jp', course_id=course_id)
-        parsed_en = html.fromstring(requests.get(url_en, headers=header).content)
-        parsed_jp = html.fromstring(requests.get(url_jp, headers=header).content)
+        # TODO possible optimization
+        parsed_en = html.fromstring(self.session.get(url_en).content)
+        parsed_jp = html.fromstring(self.session.get(url_jp).content)
         info_en = parsed_en.xpath(query["info_table"])[0]
         info_jp = parsed_jp.xpath(query["info_table"])[0]
 
@@ -86,6 +94,5 @@ class SyllabusCrawler:
             "term": term,
             "occurrences": occ,
             "location": rename_location(info_en.xpath(query["classroom"])[0]),
-            "min_year": parse_min_year(info_en.xpath(query["min_year"])[0]),
-            "code": info_en.xpath(query["code"])[0]
+            "min_year": parse_min_year(info_en.xpath(query["min_year"])[0])
         }

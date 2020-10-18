@@ -1,8 +1,8 @@
 import datetime
 import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
+import requests as requests
 
-import requests
 import unicodedata
 from lxml import html
 
@@ -92,10 +92,10 @@ def get_syllabus_texts(course_html):
 
 
 def parse_min_year(eligible_year):
-    match = re.search(r'\d', eligible_year)
-    if match is not None:
-        return int(match.group(0))
-    return -1
+    if eligible_year == "" or eligible_year is None:
+        return ""
+    if eligible_year[0].isdigit:
+        return eligible_year[0]
 
 
 def parse_occurrences(o):
@@ -108,7 +108,7 @@ def parse_occurrences(o):
         (term, occ) = o.split(u'\xa0'u'\xa0')
     except ValueError:
         return o, []
-    occ_matches = re.finditer(r'0\d:(Mon|Tue|Wed|Thur|Fri|Sat|Sun)\.(\d)', occ)
+    occ_matches = re.finditer(r'(Mon|Tues|Wed|Thur|Fri|Sat|Sun)\.(\d)', occ)
     occurrences = [{"day": match.group(1), "period": int(match.group(2))} for match in occ_matches]
     return term, occurrences
 
