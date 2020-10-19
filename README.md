@@ -31,5 +31,5 @@ A web scraper for scraping Waseda University syllabus.
 | `thread-only` | 454               | 1                 | 178                     |
 | `thread-only` | 454               | 8                 | 32                      |
 | `thread-only` | 454               | 32                | 14                      |
-| `hybrid`      | 200               | 32                | 6                       |
-| `hybrid`      | 454               | 32                | ???(Connection refused) |
+| `hybrid`      | 200               | 2                | 6                       |
+| `hybrid`      | 454               | 5                | ???(Connection refused) |
