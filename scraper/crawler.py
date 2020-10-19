@@ -27,12 +27,12 @@ class SyllabusCrawler:
         :return: list of courses
         """
         pages = self.get_max_page()
-        course_pages = thread_only.run_concurrently(self.scrape_catalog, range(pages), self.worker)
+        course_pages = thread_only.run_concurrently(self.scrape_catalog, range(2), self.worker)
         if self.engine == "hybrid":
             results = hybrid.run_concurrently_async(course_pages, self.worker)
             return results
         else:
-            course_ids = (course_id for page in course_pages for course_id in page)
+            course_ids = list(course_id for page in course_pages for course_id in page)
             results = thread_only.run_concurrently(self.scrape_course, course_ids, self.worker)
             return results
 

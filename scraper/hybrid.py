@@ -1,6 +1,4 @@
-from concurrent.futures.thread import ThreadPoolExecutor
-
-from asyncio import as_completed
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 import asyncio
 
@@ -73,7 +71,7 @@ def run_concurrently_async(tasks, n):
         wait_list = []
         for t in tasks:
             wait_list.append(executor.submit(run_coroutines, t))
-    return [page.result() for page in as_completed(wait_list)]
+    return (page.result() for page in as_completed(wait_list))
 
 
 def run_coroutines(tasks):
