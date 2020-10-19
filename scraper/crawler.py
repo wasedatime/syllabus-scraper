@@ -6,30 +6,21 @@ from aiohttp import ClientSession
 
 from scraper.utils import *
 from scraper.const import header, query, adapter
-
-
-# loop = asyncio.get_event_loop()
-# future = asyncio.ensure_future(run(4))
-# loop.run_until_complete(future)
+from scraper import hybrid, thread_only
 
 
 class SyllabusCrawler:
-    def __init__(self, dept, task=None):
+    def __init__(self, dept, task=None, engine="thread-only", worker=8):
         """
         :param dept: department name
-        # TODO define task schema
-        :param task: dict :=
-            {
-                "semester": 'spring' | 'fall'
-                "course_ids": ['string']
-                "additional_info": ['string']
-            }
+        :param task: tasks to execute
+        :param engine: "thread-only" | "hybrid",
+        :param worker: num of worker threads
         """
         self.dept = dept
         self.task = task
-        # self.session = requests.Session()
-        # self.session.headers.update(header)
-        # self.session.mount('https://', adapter)
+        self.engine = engine
+        self.worker = worker
 
     def execute(self):
         """
@@ -37,12 +28,14 @@ class SyllabusCrawler:
         :return: list of courses
         """
         pages = get_max_page(self.dept)
-        course_pages = list(run_concurrently(self.scrape_catalog, range(pages)))
-        # course_ids = (course_id for page in course_pages for course_id in page)  # flatten course_id list
-        # courses = run_concurrently(self.scrape_course, course_ids)
-        loops = [asyncio.new_event_loop() for i in range(pages)]
-        results = run_concurrently2(course_pages, loops)
-        return results
+        course_pages = thread_only.run_concurrently(self.scrape_catalog, range(pages), self.worker)
+        if self.engine == "hybrid":
+            results = hybrid.run_concurrently_async(course_pages, self.worker)
+            return results
+        else:
+            course_ids = (course_id for page in course_pages for course_id in page)
+            results = thread_only.run_concurrently(self.scrape_course, course_ids, self.worker)
+            return results
 
     def scrape_catalog(self, page):
         """
@@ -80,7 +73,6 @@ class SyllabusCrawler:
         # requirements = self.task["additional_info"]
         url_en = build_url(lang='en', course_id=course_id)
         url_jp = build_url(lang='jp', course_id=course_id)
-        # TODO possible optimization
         parsed_en = html.fromstring(requests.urlopen(url_en).read())
         parsed_jp = html.fromstring(requests.urlopen(url_jp).read())
         info_en = parsed_en.xpath(query["info_table"])[0]

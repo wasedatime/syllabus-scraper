@@ -1,30 +1,12 @@
 import datetime
 import re
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import urllib.request as requests
 
-import asyncio
 import unicodedata
 from lxml import html
 
-from scraper.const import location_name_map, dept_name_map, header, query
-from aiohttp import ClientSession
+from scraper.const import location_name_map, dept_name_map, query
 
-async def fetch(url, session):
-    async with session.get(url[0]) as resp_en:
-        en = await resp_en.read()
-    return en
-
-
-async def run(page):
-    async with ClientSession() as session:
-        tasks = []
-        for c in page:
-            url = (build_url(course_id=c, lang='en'), build_url(course_id=c, lang='jp'))
-            task = asyncio.ensure_future(fetch(url, session))
-            tasks.append(task)
-        resp = await asyncio.gather(*tasks)
-    return resp
 
 def rename_location(loc):
     """
@@ -128,43 +110,6 @@ def parse_occurrences(o):
     occ_matches = re.finditer(r'(Mon|Tues|Wed|Thur|Fri|Sat|Sun)\.(\d)', occ)
     occurrences = [{"day": match.group(1), "period": int(match.group(2))} for match in occ_matches]
     return term, occurrences
-
-
-def run_concurrently(func, tasks):
-    """
-    Scrape and process data concurrently
-    :param tasks: iterator of tasks
-    :param func: scraping function
-    :return: iterator of the results
-    """
-    with ThreadPoolExecutor(max_workers=32) as executor:
-        wait_list = [executor.submit(func, t) for t in tasks]
-    return (page.result() for page in as_completed(wait_list))
-
-def run_concurrently2(tasks, loops):
-    """
-    Scrape and process data concurrently
-    :param tasks: iterator of tasks
-    :param func: scraping function
-    :return: iterator of the results
-    """
-    with ThreadPoolExecutor(max_workers=32) as executor:
-        wait_list = []
-        i = 0
-        for t in tasks:
-            wait_list.append(executor.submit(run_routines, t, loops[i]))
-            i = i+1
-    return [page.result() for page in as_completed(wait_list)]
-
-def run_routines(page, loop):
-    """
-    Scrape and process data concurrently
-    :param tasks: iterator of tasks
-    :param func: scraping function
-    :return: iterator of the results
-    """
-    asyncio.set_event_loop(loop)
-    return loop.run_until_complete(run(page))
 
 def weekday_to_int(day):
     w_t_n = {
