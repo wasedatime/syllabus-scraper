@@ -58,6 +58,22 @@ def transform_row_names(rows):
         rows[i] = rows[i].lower().replace(' ', '_').replace('/', '_').replace('__', '')
 
 
+def get_eval_criteria(table):
+    """
+    Get the evaluation criteria from course detail page
+    :return: dict:=
+        {
+            "exam": {
+                "percentage": 'int'
+                "criteria": 'string'
+            },
+            "papers": {...},
+            "class": {...}
+        }
+    """
+    pass
+
+
 def get_syllabus_texts(course_html):
     """
     TODO extract evaluation table

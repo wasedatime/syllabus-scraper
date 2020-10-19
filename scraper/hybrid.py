@@ -46,7 +46,6 @@ async def scrape_jp(course_id, session):
 async def scrape(course_id, session):
     get_en = scrape_en(course_id, session)
     get_jp = scrape_jp(course_id, session)
-    # asyncio.set_event_loop(asyncio.get_event_loop())
     en, jp = await asyncio.gather(get_en, get_jp)
     en.update(jp)
     return en
@@ -55,7 +54,6 @@ async def scrape(course_id, session):
 async def run(page):
     async with ClientSession() as session:
         tasks = [asyncio.ensure_future(scrape(c, session)) for c in page]
-        # asyncio.set_event_loop(asyncio.get_event_loop())
         course_info = await asyncio.gather(*tasks)
     return course_info
 
@@ -78,7 +76,6 @@ def run_coroutines(tasks):
     """
     Scrape and process data concurrently
     :param tasks: iterator of tasks
-    :param func: scraping function
     :return: iterator of the results
     """
     loop = asyncio.new_event_loop()
