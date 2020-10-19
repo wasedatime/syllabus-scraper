@@ -1,12 +1,9 @@
 import datetime
 import re
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
-import requests
 import unicodedata
-from lxml import html
 
-from scraper.const import location_name_map, dept_name_map, header, query
+from scraper.const import location_name_map, dept_name_map, query
 
 
 def rename_location(loc):
@@ -40,18 +37,6 @@ def build_url(dept=None, page=1, lang="en", course_id=None):
     year = datetime.datetime.now().year
     return f"https://www.wsl.waseda.jp/syllabus/JAA103.php?pYear={year}&p_gakubu={param}&p_page={page}&p_number=100" \
            f"&pLng={lang} "
-
-
-def get_max_page(dept):
-    """
-    Get the max page number for a department
-    :param dept: department
-    :return: int
-    """
-    url = build_url(dept, 1, 'en')
-    body = requests.get(url, headers=header).content
-    last = html.fromstring(body).xpath(query["page_num"])[-1]
-    return int(last)
 
 
 def to_half_width(s):
@@ -92,15 +77,14 @@ def get_syllabus_texts(course_html):
 
 
 def parse_min_year(eligible_year):
-    match = re.search(r'\d', eligible_year)
-    if match is not None:
-        return int(match.group(0))
-    return -1
+    if eligible_year == "" or eligible_year is None:
+        return ""
+    if eligible_year[0].isdigit:
+        return eligible_year[0]
 
 
 def parse_occurrences(o):
     """
-    TODO Validate
     Extract term and occurrences(day and period) from raw data
     :param o: raw string
     :return: term and occurrence(list)
@@ -108,22 +92,10 @@ def parse_occurrences(o):
     try:
         (term, occ) = o.split(u'\xa0'u'\xa0')
     except ValueError:
-        return "", []
-    occ_matches = re.finditer(r'0\d:(Mon|Tue|Wed|Thur|Fri|Sat|Sun)\.(\d)', occ)
+        return o, []
+    occ_matches = re.finditer(r'(Mon|Tues|Wed|Thur|Fri|Sat|Sun)\.(\d)', occ)
     occurrences = [{"day": match.group(1), "period": int(match.group(2))} for match in occ_matches]
     return term, occurrences
-
-
-def run_concurrently(func, tasks):
-    """
-    Scrape and process data concurrently
-    :param tasks: iterator of tasks
-    :param func: scraping function
-    :return: iterator of the results
-    """
-    with ThreadPoolExecutor() as executor:
-        wait_list = [executor.submit(func, t) for t in tasks]
-    return (page.result() for page in as_completed(wait_list))
 
 
 def weekday_to_int(day):

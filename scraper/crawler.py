@@ -1,39 +1,54 @@
-from lxml import html
-import requests
+import urllib.request as requests
 import re
 
-from scraper.utils import build_url, get_max_page, run_concurrently, parse_occurrences, rename_location, parse_min_year
-from scraper.const import header, query
+from lxml import html
+
+from scraper import hybrid, thread_only
+from scraper.const import query, header
+from scraper.utils import build_url, parse_occurrences, to_half_width, rename_location, parse_min_year
 
 
 class SyllabusCrawler:
-    def __init__(self, dept, task=None):
+    def __init__(self, dept, task=None, engine="thread-only", worker=8):
         """
         :param dept: department name
-        # TODO define task schema
-        :param task: dict :=
-            {
-                "semester": 'spring' | 'fall'
-                "course_ids": ['string']
-                "additional_info": ['string']
-            }
+        :param task: tasks to execute
+        :param engine: "thread-only" | "hybrid",
+        :param worker: num of worker threads
         """
         self.dept = dept
         self.task = task
+        self.engine = engine
+        self.worker = worker
 
     def execute(self):
-        pages = get_max_page(self.dept)
-        print(pages)
+<<<<<<< HEAD
 
-        course_pages = [self.scrape_catalog(p) for p in range(6)]
-        # course_pages = run_concurrently(self.scrape_catalog, range(pages))
+=======
+        """
+        Execute the crawler
+        :return: list of courses
+        """
+        pages = self.get_max_page()
+        course_pages = thread_only.run_concurrently(self.scrape_catalog, range(pages), self.worker)
+        if self.engine == "hybrid":
+            results = hybrid.run_concurrently_async(course_pages, self.worker)
+            return results
+        else:
+            course_ids = list(course_id for page in course_pages for course_id in page)
+            results = thread_only.run_concurrently(self.scrape_course, course_ids, self.worker)
+            return results
 
-        course_ids = (course_id for page in course_pages for course_id in page)  # flatten course_id list
-       
-        courses = [self.scrape_course(p) for p in course_ids]
-        # courses = run_concurrently(self.scrape_course, course_ids)
-        
-        return courses
+    def get_max_page(self):
+        """
+        Get the max page number for a department
+        :return: int
+        """
+        url = build_url(self.dept, 1, 'en')
+        body = requests.urlopen(url).read()
+        last = html.fromstring(body).xpath(query["page_num"])[-1]
+        return int(last)
+>>>>>>> feature/async
 
     def scrape_catalog(self, page):
         """
@@ -41,9 +56,9 @@ class SyllabusCrawler:
         :param page: page number (starts from 1)
         :return: list of course ids
         """
-        url = build_url(self.dept, page + 1, 'en')
-        body = requests.get(url, headers=header).content
-        clist = html.fromstring(body).xpath(query["course_list"])
+        req = requests.Request(url=build_url(self.dept, page + 1, 'en'), headers=header)
+        resp = requests.urlopen(req).read()
+        clist = html.fromstring(resp).xpath(query["course_list"])
         return [re.search(r"\w{28}", clist[i].xpath(query["course_id"])[0]).group(0) for i in range(1, len(clist))]
 
     def scrape_course(self, course_id):
@@ -69,24 +84,28 @@ class SyllabusCrawler:
             }
         """
         # requirements = self.task["additional_info"]
-        url_en = build_url(lang='en', course_id=course_id)
-        url_jp = build_url(lang='jp', course_id=course_id)
-        parsed_en = html.fromstring(requests.get(url_en, headers=header).content)
-        parsed_jp = html.fromstring(requests.get(url_jp, headers=header).content)
+        req_en = requests.Request(url=build_url(lang='en', course_id=course_id), headers=header)
+        req_jp = requests.Request(url=build_url(lang='jp', course_id=course_id), headers=header)
+        parsed_en = html.fromstring(requests.urlopen(req_en).read())
+        parsed_jp = html.fromstring(requests.urlopen(req_jp).read())
         info_en = parsed_en.xpath(query["info_table"])[0]
         info_jp = parsed_jp.xpath(query["info_table"])[0]
+<<<<<<< HEAD
         # print(info_en.xpath(query["occurrence"])[0])
+=======
+
+        term, occ = parse_occurrences(info_en.xpath(query["occurrence"])[0])
+>>>>>>> feature/async
 
         return {
             "id": course_id,
             "title": info_en.xpath(query["title"])[0],
-            "title_jp": info_jp.xpath(query["title"])[0],
+            "title_jp": to_half_width(info_jp.xpath(query["title"])[0]),
             "instructor": info_en.xpath(query["instructor"])[0],
-            "instructor_jp": info_jp.xpath(query["instructor"])[0],
+            "instructor_jp": to_half_width(info_jp.xpath(query["instructor"])[0]),
             "lang": info_en.xpath(query["lang"])[0],
-            "term": parse_occurrences(info_en.xpath(query["occurrence"])[0])[0],
-            "occurrences": parse_occurrences(info_en.xpath(query["occurrence"])[0])[1],
+            "term": term,
+            "occurrences": occ,
             "location": rename_location(info_en.xpath(query["classroom"])[0]),
-            "min_year": parse_min_year(info_en.xpath(query["min_year"])[0]),
-            "code": info_en.xpath(query["code"])[0]
+            "min_year": parse_min_year(info_en.xpath(query["min_year"])[0])
         }

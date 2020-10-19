@@ -1,5 +1,7 @@
 import json
-import scraper
+
+from scraper.crawler import SyllabusCrawler
+import time
 
 
 def handler(event, context):
