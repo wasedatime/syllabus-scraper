@@ -1,9 +1,7 @@
 import datetime
 import re
-import urllib.request as requests
 
 import unicodedata
-from lxml import html
 
 from scraper.const import location_name_map, dept_name_map, query
 
@@ -39,18 +37,6 @@ def build_url(dept=None, page=1, lang="en", course_id=None):
     year = datetime.datetime.now().year
     return f"https://www.wsl.waseda.jp/syllabus/JAA103.php?pYear={year}&p_gakubu={param}&p_page={page}&p_number=100" \
            f"&pLng={lang} "
-
-
-def get_max_page(dept):
-    """
-    Get the max page number for a department
-    :param dept: department
-    :return: int
-    """
-    url = build_url(dept, 1, 'en')
-    body = requests.urlopen(url).read()
-    last = html.fromstring(body).xpath(query["page_num"])[-1]
-    return int(last)
 
 
 def to_half_width(s):
@@ -110,6 +96,7 @@ def parse_occurrences(o):
     occ_matches = re.finditer(r'(Mon|Tues|Wed|Thur|Fri|Sat|Sun)\.(\d)', occ)
     occurrences = [{"day": match.group(1), "period": int(match.group(2))} for match in occ_matches]
     return term, occurrences
+
 
 def weekday_to_int(day):
     w_t_n = {

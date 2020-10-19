@@ -17,5 +17,5 @@ def handler(event, context):
 if __name__ == '__main__':
     start = time.time()
     cjl = SyllabusCrawler('CJL')
-    print(cjl.execute()[1])
+    print(list(cjl.execute()))
     print(time.time() - start)

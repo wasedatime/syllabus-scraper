@@ -1,7 +1,5 @@
 import random
 
-import requests
-
 dept_name_map = {
     "PSE": {"jp": "政経", "en": "Schl Political Sci/Econo", "param": "111973"},
     "LAW": {"jp": "法学", "en": "Schl Law", "param": "121973"},
@@ -114,7 +112,3 @@ query = {
     "row_name": "th[1]/text()",
     "row_content": "td[1]/text()"
 }
-
-adapter = requests.adapters.HTTPAdapter(
-    pool_connections=100,
-    pool_maxsize=100)

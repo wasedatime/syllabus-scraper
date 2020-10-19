@@ -1,12 +1,11 @@
-from lxml import html
 import urllib.request as requests
-import time
-import asyncio
-from aiohttp import ClientSession
+import re
 
-from scraper.utils import *
-from scraper.const import header, query, adapter
+from lxml import html
+
 from scraper import hybrid, thread_only
+from scraper.const import query, header
+from scraper.utils import build_url, parse_occurrences, to_half_width, rename_location, parse_min_year
 
 
 class SyllabusCrawler:
@@ -27,7 +26,7 @@ class SyllabusCrawler:
         Execute the crawler
         :return: list of courses
         """
-        pages = get_max_page(self.dept)
+        pages = self.get_max_page()
         course_pages = thread_only.run_concurrently(self.scrape_catalog, range(pages), self.worker)
         if self.engine == "hybrid":
             results = hybrid.run_concurrently_async(course_pages, self.worker)
@@ -37,15 +36,25 @@ class SyllabusCrawler:
             results = thread_only.run_concurrently(self.scrape_course, course_ids, self.worker)
             return results
 
+    def get_max_page(self):
+        """
+        Get the max page number for a department
+        :return: int
+        """
+        url = build_url(self.dept, 1, 'en')
+        body = requests.urlopen(url).read()
+        last = html.fromstring(body).xpath(query["page_num"])[-1]
+        return int(last)
+
     def scrape_catalog(self, page):
         """
         Get all the course id listed in a page
         :param page: page number (starts from 1)
         :return: list of course ids
         """
-        url = build_url(self.dept, page + 1, 'en')
-        body = requests.urlopen(url).read()
-        clist = html.fromstring(body).xpath(query["course_list"])
+        req = requests.Request(url=build_url(self.dept, page + 1, 'en'), headers=header)
+        resp = requests.urlopen(req).read()
+        clist = html.fromstring(resp).xpath(query["course_list"])
         return [re.search(r"\w{28}", clist[i].xpath(query["course_id"])[0]).group(0) for i in range(1, len(clist))]
 
     def scrape_course(self, course_id):
@@ -71,10 +80,10 @@ class SyllabusCrawler:
             }
         """
         # requirements = self.task["additional_info"]
-        url_en = build_url(lang='en', course_id=course_id)
-        url_jp = build_url(lang='jp', course_id=course_id)
-        parsed_en = html.fromstring(requests.urlopen(url_en).read())
-        parsed_jp = html.fromstring(requests.urlopen(url_jp).read())
+        req_en = requests.Request(url=build_url(lang='en', course_id=course_id), headers=header)
+        req_jp = requests.Request(url=build_url(lang='jp', course_id=course_id), headers=header)
+        parsed_en = html.fromstring(requests.urlopen(req_en).read())
+        parsed_jp = html.fromstring(requests.urlopen(req_jp).read())
         info_en = parsed_en.xpath(query["info_table"])[0]
         info_jp = parsed_jp.xpath(query["info_table"])[0]
 
