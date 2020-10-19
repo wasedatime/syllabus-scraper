@@ -22,9 +22,6 @@ class SyllabusCrawler:
         self.worker = worker
 
     def execute(self):
-<<<<<<< HEAD
-
-=======
         """
         Execute the crawler
         :return: list of courses
@@ -48,7 +45,7 @@ class SyllabusCrawler:
         body = requests.urlopen(url).read()
         last = html.fromstring(body).xpath(query["page_num"])[-1]
         return int(last)
->>>>>>> feature/async
+
 
     def scrape_catalog(self, page):
         """
@@ -90,12 +87,10 @@ class SyllabusCrawler:
         parsed_jp = html.fromstring(requests.urlopen(req_jp).read())
         info_en = parsed_en.xpath(query["info_table"])[0]
         info_jp = parsed_jp.xpath(query["info_table"])[0]
-<<<<<<< HEAD
-        # print(info_en.xpath(query["occurrence"])[0])
-=======
+
 
         term, occ = parse_occurrences(info_en.xpath(query["occurrence"])[0])
->>>>>>> feature/async
+
 
         return {
             "id": course_id,
