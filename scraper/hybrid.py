@@ -1,6 +1,5 @@
-from concurrent.futures import ThreadPoolExecutor, as_completed
-
 import asyncio
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from aiohttp import ClientSession
 from lxml import html
