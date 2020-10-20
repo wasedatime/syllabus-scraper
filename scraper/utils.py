@@ -2,8 +2,9 @@ import datetime
 import re
 
 import unicodedata
+from lxml import html
 
-from scraper.const import location_name_map, dept_name_map, query
+from scraper.const import location_name_map, dept_name_map, query, eval_type_map
 
 
 def rename_location(loc):
@@ -61,17 +62,26 @@ def transform_row_names(rows):
 def get_eval_criteria(table):
     """
     Get the evaluation criteria from course detail page
-    :return: dict:=
-        {
-            "exam": {
-                "percentage": 'int'
-                "criteria": 'string'
-            },
-            "papers": {...},
-            "class": {...}
-        }
+    :return: array :=
+        [{
+            "type": 'enum'
+            "percent": 'int'
+            "criteria": 'string'
+        }]
     """
-    pass
+    evals = []
+    rows = table.xpath('table[1]/tbody[1]/tr')[1:]
+    for r in rows:
+        elem = r.getchildren()
+        kind = elem[0].text
+        percent = int(elem[1].text[:-1])
+        criteria = elem[2].text
+        evals.append({
+            "type": eval_type_map[kind],
+            "percent": percent,
+            "criteria": criteria
+        })
+    return evals
 
 
 def get_syllabus_texts(course_html):

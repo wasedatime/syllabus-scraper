@@ -112,3 +112,9 @@ query = {
     "row_name": "th[1]/text()",
     "row_content": "td[1]/text()"
 }
+
+eval_type_map = {
+    "Exam:": 0,
+    "Papers:": 1,
+    "Class Participation:": 2
+}
