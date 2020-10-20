@@ -29,6 +29,7 @@ A web scraper for scraping Waseda University syllabus.
 | engine        | number of courses | number of workers | execution time (s)      |
 | ------------- | ----------------- | ----------------- | ----------------------- |
 | `thread-only` | 454               | 1                 | 178                     |
+| `thread-only` | 454               | 4                 | 60                      |
 | `thread-only` | 454               | 8                 | 32                      |
 | `thread-only` | 454               | 32                | 14                      |
 | `hybrid`      | 100               | 1                 | 4                       |
