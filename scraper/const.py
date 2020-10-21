@@ -118,3 +118,11 @@ eval_type_map = {
     "Papers:": 1,
     "Class Participation:": 2
 }
+
+category_enum_map = {
+
+}
+
+level_enum_map = {
+
+}
