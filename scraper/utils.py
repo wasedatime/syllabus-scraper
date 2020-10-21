@@ -84,10 +84,11 @@ def get_eval_criteria(table):
     return evals
 
 
-def get_syllabus_texts(course_html):
+def get_syllabus_texts(course_html, row_name = None):
     """
     TODO extract evaluation table
     Get all the "Syllabus Information" in course details page
+    :param row_name: the name of which row to extract
     :param course_html: parsed html
     :return: dict:=
         {
@@ -98,6 +99,14 @@ def get_syllabus_texts(course_html):
     rows = course_html.xpath(query["text_table"])
     row_names = [row.xpath(query["row_name"]) for row in rows]
     transform_row_names(row_names)
+    if row_name is not None:
+        for i in range(len(row_names)):
+            if row_name == row_names[i]:
+                content = rows[i].xpath(query["row_content"])
+                return {
+                    row_name: content
+                }
+        return dict()
     row_contents = (row.xpath(query["row_content"]) for row in rows)
     return dict(list(zip(row_names, row_contents)))
 

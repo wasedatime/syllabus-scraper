@@ -27,7 +27,7 @@ class SyllabusCrawler:
         :return: list of courses
         """
         pages = self.get_max_page()
-        course_pages = thread_only.run_concurrently(self.scrape_catalog, range(pages), self.worker)
+        course_pages = thread_only.run_concurrently(self.scrape_catalog, range(1), self.worker)
         if self.engine == "hybrid":
             results = hybrid.run_concurrently_async(course_pages, self.worker)
             return (course_info for page in results for course_info in page)
@@ -75,7 +75,9 @@ class SyllabusCrawler:
                                 "period":'integer'
                                 }],
                 "location": 'string',
-                "min_year: 'int'
+                "min_year": 'int',
+                "category": 'enum',
+                "level": 'enum'
             }
         """
         # requirements = self.task["additional_info"]
@@ -98,5 +100,7 @@ class SyllabusCrawler:
             "term": term,
             "occurrences": occ,
             "location": rename_location(info_en.xpath(query["classroom"])[0]),
-            "min_year": parse_min_year(info_en.xpath(query["min_year"])[0])
+            "min_year": parse_min_year(info_en.xpath(query["min_year"])[0]),
+            "category": info_en.xpath(query["category"])[0],
+            "level": info_en.xpath(query["level"])[0]
         }
