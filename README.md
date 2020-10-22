@@ -41,6 +41,7 @@ print(list(results))
 | `thread-only` | 454               | 4                 | 60                      |
 | `thread-only` | 454               | 8                 | 32                      |
 | `thread-only` | 454               | 32                | 14                      |
+| `thread-only` | 100               | 32                | 5                       |
 | `hybrid`      | 100               | 1                 | 4                       |
 | `hybrid`      | 200               | 2                | 6                       |
 | `hybrid`      | 454               | 5                | ???(Connection refused) |
