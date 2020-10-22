@@ -1,5 +1,14 @@
 # syllabus-scraper
-A web scraper for scraping Waseda University syllabus.
+
+A new web scraper for scraping Waseda University syllabus.
+
+## Usage
+
+```python
+my_crawler = SyllabusCrawler(configs...)
+results = my_crawler.execute()
+print(list(results))
+```
 
 ## Configuration
 
