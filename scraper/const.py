@@ -110,7 +110,7 @@ query = {
     "text_table": "/html[1]/body[1]/form[1]/div[1]/div[2]/div[1]/div[1]/div[1]/div[1]/div[1]/div[1]/"
                   "div[1]/div[2]/div[2]/div[1]/div[2]/div[1]/div[1]/div[1]/div[1]/div[2]/table[1]/tbody[1]/tr",
     "row_name": "th[1]/text()",
-    "row_content": "td[1]/text()"
+    "row_content": "td[1]"
 }
 
 eval_type_map = {

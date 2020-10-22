@@ -32,7 +32,7 @@ def build_url(dept=None, page=1, lang="en", course_id=None):
     :param lang: language ('en', 'jp')
     :return: str
     """
-    if course_id is not None:
+    if course_id:
         return f"https://www.wsl.waseda.jp/syllabus/JAA104.php?pKey={course_id}&pLng={lang}"
     param = dept_name_map[dept]["param"]
     year = datetime.datetime.now().year
@@ -49,17 +49,7 @@ def to_half_width(s):
     return unicodedata.normalize('NFKC', s)
 
 
-def transform_row_names(rows):
-    """
-    Transform row name to json key name
-    :param rows:
-    :return:
-    """
-    for i in range(0, len(rows)):
-        rows[i] = rows[i].lower().replace(' ', '_').replace('/', '_').replace('__', '')
-
-
-def get_eval_criteria(table):
+def get_eval_criteria(parsed):
     """
     Get the evaluation criteria from course detail page
     :return: array :=
@@ -69,24 +59,26 @@ def get_eval_criteria(table):
             "criteria": 'string'
         }]
     """
+    table = get_syllabus_texts(parsed, "Evaluation")
     evals = []
-    rows = table.xpath('table[1]/tbody[1]/tr')[1:]
-    for r in rows:
+    rows = table.xpath('table//tr')
+    if len(rows) < 2:
+        return []
+    for r in rows[1:]:
         elem = r.getchildren()
         kind = elem[0].text
-        percent = int(elem[1].text[:-1])
-        criteria = elem[2].text
+        percent = int(elem[1].text.strip()[:-1])
+        criteria = to_half_width(elem[2].text)
         evals.append({
-            "type": eval_type_map[kind],
+            "type": kind,
             "percent": percent,
             "criteria": criteria
         })
     return evals
 
 
-def get_syllabus_texts(course_html, row_name = None):
+def get_syllabus_texts(course_html, row_name=None):
     """
-    TODO extract evaluation table
     Get all the "Syllabus Information" in course details page
     :param row_name: the name of which row to extract
     :param course_html: parsed html
@@ -95,20 +87,21 @@ def get_syllabus_texts(course_html, row_name = None):
             row1_name: row1_content,
             ...
         }
+        or an Element if row_name is specified
+        or None if nothing matched
     """
     rows = course_html.xpath(query["text_table"])
-    row_names = [row.xpath(query["row_name"]) for row in rows]
-    transform_row_names(row_names)
-    if row_name is not None:
-        for i in range(len(row_names)):
-            if row_name == row_names[i]:
-                content = rows[i].xpath(query["row_content"])
-                return {
-                    row_name: content
-                }
-        return dict()
-    row_contents = (row.xpath(query["row_content"]) for row in rows)
-    return dict(list(zip(row_names, row_contents)))
+    row_names = [(row.xpath(query["row_name"]) or [""])[0] for row in rows]
+    if not row_name:
+        row_contents = (row.xpath(query["row_content"]) for row in rows)
+        return dict(list(zip(row_names, row_contents)))
+    for i in range(len(row_names)):
+        if row_name == row_names[i]:
+            content = rows[i].xpath(query["row_content"])
+            if content:
+                return content[0]
+            return None
+    return None
 
 
 def parse_min_year(eligible_year):

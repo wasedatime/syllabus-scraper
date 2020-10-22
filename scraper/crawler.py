@@ -5,7 +5,8 @@ from lxml import html
 
 from scraper import hybrid, thread_only
 from scraper.const import query, header
-from scraper.utils import build_url, parse_occurrences, to_half_width, rename_location, parse_min_year
+from scraper.utils import build_url, parse_occurrences, to_half_width, rename_location, parse_min_year, \
+    get_syllabus_texts, get_eval_criteria
 
 
 class SyllabusCrawler:
@@ -27,7 +28,7 @@ class SyllabusCrawler:
         :return: list of courses
         """
         pages = self.get_max_page()
-        course_pages = thread_only.run_concurrently(self.scrape_catalog, range(pages), self.worker)
+        course_pages = thread_only.run_concurrently(self.scrape_catalog, range(1), self.worker)
         if self.engine == "hybrid":
             results = hybrid.run_concurrently_async(course_pages, self.worker)
             return (course_info for page in results for course_info in page)
@@ -77,7 +78,9 @@ class SyllabusCrawler:
                 "location": 'string',
                 "min_year": 'int',
                 "category": 'enum',
-                "level": 'enum'
+                "credit": 'int',
+                "level": 'enum',
+                "eval": 'array'
             }
         """
         # requirements = self.task["additional_info"]
@@ -89,6 +92,7 @@ class SyllabusCrawler:
         info_jp = parsed_jp.xpath(query["info_table"])[0]
 
         term, occ = parse_occurrences(info_en.xpath(query["occurrence"])[0])
+        evals = get_eval_criteria(get_syllabus_texts(parsed_en, "Evaluation"))
 
         return {
             "id": course_id,
@@ -102,5 +106,7 @@ class SyllabusCrawler:
             "location": rename_location(info_en.xpath(query["classroom"])[0]),
             "min_year": parse_min_year(info_en.xpath(query["min_year"])[0]),
             "category": info_en.xpath(query["category"])[0],
-            "level": info_en.xpath(query["level"])[0]
+            "credit": info_en.xpath(query["credit"])[0],
+            "level": info_en.xpath(query["level"])[0],
+            "evals": evals
         }
