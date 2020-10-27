@@ -4,7 +4,7 @@ import re
 import unicodedata
 from lxml import html
 
-from scraper.const import location_name_map, dept_name_map, query, eval_type_map
+from scraper.const import location_name_map, dept_name_map, query, eval_type_map, weekday_enum_map, term_enum_map
 
 
 def rename_location(loc):
@@ -13,13 +13,15 @@ def rename_location(loc):
     :param loc: location
     :return: location after renaming
     """
+    # TODO optimize code structure
     if loc.isspace():
         return "undecided"
-    if re.fullmatch(r"^[\d]+-[\d]+$", loc) is not None:
+    if re.fullmatch(r"^[\d]+-[\dA-Z-]+$", loc) is not None:
         return loc
     elif loc in location_name_map.keys():
-        return location_name_map["loc"]
+        return location_name_map[loc]
     else:
+        print(loc)
         return loc
 
 
@@ -46,6 +48,8 @@ def to_half_width(s):
     :param s:
     :return:
     """
+    if not s:
+        return ""
     return unicodedata.normalize('NFKC', s)
 
 
@@ -60,6 +64,8 @@ def get_eval_criteria(parsed):
         }]
     """
     table = get_syllabus_texts(parsed, "Evaluation")
+    if table is None:
+        return []
     evals = []
     rows = table.xpath('table//tr')
     if len(rows) < 2:
@@ -67,10 +73,14 @@ def get_eval_criteria(parsed):
     for r in rows[1:]:
         elem = r.getchildren()
         kind = elem[0].text
-        percent = int(elem[1].text.strip()[:-1])
+        percent = elem[1].text.strip()[:-1] or -1
+        try:
+            percent = int(percent)
+        except ValueError:
+            print(percent)
         criteria = to_half_width(elem[2].text)
         evals.append({
-            "type": kind,
+            "type": to_enum(eval_type_map, kind),
             "percent": percent,
             "criteria": criteria
         })
@@ -90,11 +100,10 @@ def get_syllabus_texts(course_html, row_name=None):
         or an Element if row_name is specified
         or None if nothing matched
     """
+    if course_html is None:
+        return None
     rows = course_html.xpath(query["text_table"])
     row_names = [(row.xpath(query["row_name"]) or [""])[0] for row in rows]
-    if not row_name:
-        row_contents = (row.xpath(query["row_content"]) for row in rows)
-        return dict(list(zip(row_names, row_contents)))
     for i in range(len(row_names)):
         if row_name == row_names[i]:
             content = rows[i].xpath(query["row_content"])
@@ -109,34 +118,53 @@ def parse_min_year(eligible_year):
         return ""
     if eligible_year[0].isdigit:
         return eligible_year[0]
+    return -1
 
 
-def parse_occurrences(o):
+def parse_occurrences(o, loc):
     """
     Extract term and occurrences(day and period) from raw data
     :param o: raw string
     :return: term and occurrence(list)
     """
+    # TODO optimize code structure
     try:
-        (term, occ) = o.split(u'\xa0'u'\xa0')
+        (term, occ) = o.split(u'\xa0'u'\xa0', 1)
     except ValueError:
+        print(o)
         return o, []
-    occ_matches = re.finditer(r'(Mon|Tues|Wed|Thur|Fri|Sat|Sun)\.(\d)', occ)
-    occurrences = [{"day": match.group(1), "period": int(match.group(2))} for match in occ_matches]
+    term = to_enum(term_enum_map, term)
+    if occ == "othersothers":
+        return term, [{"day": -1, "period": -1}]
+    if occ == "othersOn demand":
+        return term, [{"day": -1, "period": 0}]
+    occ_matches = re.finditer(r'(Mon|Tues|Wed|Thur|Fri|Sat|Sun)\.(\d-\d|\d|On demand)', occ)
+    occurrences = []
+    for match in occ_matches:
+        day, period = match.group(1), match.group(2)
+        day = to_enum(weekday_enum_map, day)
+        if period is None:
+            period = -1
+        elif period == "On demand":
+            period = 0
+        elif period.isdigit():
+            period = int(period)
+        else:
+            p1, p2 = period.split('-', 1)
+            occurrences.append({"day": day, "period": p1})
+            occurrences.append({"day": day, "period": p2})
+            continue
+        occurrences.append({"day": day, "period": period})
     return term, occurrences
 
 
-def weekday_to_int(day):
-    w_t_n = {
-        'Sun': 0,
-        'Mon': 1,
-        'Tues': 2,
-        'Wed': 3,
-        'Thur': 4,
-        'Fri': 5,
-        'Sat': 6
-    }
+def to_enum(map, data):
+    if not data:
+        return -1
+    if data == u'\xa0':
+        return -1
     try:
-        return w_t_n[day]
+        return map[data]
     except KeyError:
+        print(data)
         return -1

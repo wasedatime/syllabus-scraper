@@ -4,9 +4,9 @@ import re
 from lxml import html
 
 from scraper import hybrid, thread_only
-from scraper.const import query, header
+from scraper.const import query, header, level_enum_map, type_enum_map
 from scraper.utils import build_url, parse_occurrences, to_half_width, rename_location, parse_min_year, \
-    get_syllabus_texts, get_eval_criteria
+    get_syllabus_texts, get_eval_criteria, to_enum
 
 
 class SyllabusCrawler:
@@ -28,7 +28,7 @@ class SyllabusCrawler:
         :return: list of courses
         """
         pages = self.get_max_page()
-        course_pages = thread_only.run_concurrently(self.scrape_catalog, range(1), self.worker)
+        course_pages = thread_only.run_concurrently(self.scrape_catalog, range(pages), self.worker)
         if self.engine == "hybrid":
             results = hybrid.run_concurrently_async(course_pages, self.worker)
             return (course_info for page in results for course_info in page)
@@ -44,7 +44,10 @@ class SyllabusCrawler:
         """
         url = build_url(self.dept, 1, 'en')
         body = requests.urlopen(url).read()
-        last = html.fromstring(body).xpath(query["page_num"])[-1]
+        try:
+            last = html.fromstring(body).xpath(query["page_num"])[-1]
+        except IndexError:
+            return 1
         return int(last)
 
     def scrape_catalog(self, page):
@@ -70,12 +73,13 @@ class SyllabusCrawler:
                 "instructor": 'string',
                 "instructor_jp": 'string',
                 "lang": 'enum',
+                "type": 'enum',
                 "term": 'enum',
                 "occurrences": [{
                                 "day":'integer',
-                                "period":'integer'
+                                "period":'integer',
+                                "location":'string'
                                 }],
-                "location": 'string',
                 "min_year": 'int',
                 "category": 'enum',
                 "credit": 'int',
@@ -90,23 +94,27 @@ class SyllabusCrawler:
         parsed_jp = html.fromstring(requests.urlopen(req_jp).read())
         info_en = parsed_en.xpath(query["info_table"])[0]
         info_jp = parsed_jp.xpath(query["info_table"])[0]
-
-        term, occ = parse_occurrences(info_en.xpath(query["occurrence"])[0])
-        evals = get_eval_criteria(get_syllabus_texts(parsed_en, "Evaluation"))
+        # TODO optimize code structure
+        term, occ = parse_occurrences(
+            info_en.xpath(query["occurrence"])[0],
+            rename_location(info_en.xpath(query["classroom"])[0])
+        )
+        evals = get_eval_criteria(parsed_en)
 
         return {
             "id": course_id,
             "title": info_en.xpath(query["title"])[0],
             "title_jp": to_half_width(info_jp.xpath(query["title"])[0]),
-            "instructor": info_en.xpath(query["instructor"])[0],
+            "instructor": to_half_width(info_en.xpath(query["instructor"])[0]),
             "instructor_jp": to_half_width(info_jp.xpath(query["instructor"])[0]),
             "lang": info_en.xpath(query["lang"])[0],
+            "type": to_enum(type_enum_map, info_en.xpath(query["type"])[0]),
             "term": term,
             "occurrences": occ,
             "location": rename_location(info_en.xpath(query["classroom"])[0]),
             "min_year": parse_min_year(info_en.xpath(query["min_year"])[0]),
-            "category": info_en.xpath(query["category"])[0],
+            "category": to_half_width(info_en.xpath(query["category"])[0]),
             "credit": info_en.xpath(query["credit"])[0],
-            "level": info_en.xpath(query["level"])[0],
+            "level": to_enum(level_enum_map,info_en.xpath(query["level"])[0]),
             "evals": evals
         }

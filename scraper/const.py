@@ -34,7 +34,7 @@ dept_name_map = {
     "G_FSE": {"jp": "基幹研", "en": "G.S. Fund Sci/Eng", "param": "512006"},
     "G_CSE": {"jp": "創造研", "en": "G.S. Cre Sci/Eng", "param": "522006"},
     "G_ASE": {"jp": "先進研", "en": "G.S. Adv Sci/Eng", "param": "532006"},
-    "G_WEEE": {"jp": "環エネ研", "en": "G.S. EEE", "param": "542006"},
+    "G_SEEE": {"jp": "環エネ研", "en": "G.S. EEE", "param": "542006"},
     "G_SICCS": {"jp": "国際コミ研", "en": "GSICCS", "param": "562012"},
     "G_WBS": {"jp": "経管研", "en": "WBS", "param": "572015"},
     "ART": {"jp": "芸術", "en": "Art/Architecture Schl", "param": "712001"},
@@ -59,6 +59,14 @@ location_name_map = {
     "806共同利用研究室7": "14-806",
     "504(コンピュータ教室)科学技術計算": "14-504",
     "408(コンピュータ教室)": "16-408",
+    "6-318(博物館実習室)": "6-318",
+    "１４-Ｂ１０３教育学部図書館学実習室": "14-B103",
+    "14-810(院生指導室)": "14-810",
+    "６１-２５５Ｂ教室": "61-255B",
+    "14-805共同利用研究室6": "14-805",
+    "14-807共同利用研究室8": "14-807",
+    "14-506共同利用研究室1": "14-506",
+    "５１-７１１教室": "51-711"
 }
 
 user_agents = [
@@ -116,13 +124,65 @@ query = {
 eval_type_map = {
     "Exam:": 0,
     "Papers:": 1,
-    "Class Participation:": 2
+    "Class Participation:": 2,
+    "Others:": 3
 }
 
-category_enum_map = {
-
+type_enum_map = {
+    "N/A": -1,
+    "Lecture": 0,
+    "Seminar": 1,
+    "Work": 2,
+    "Foreign Language": 3,
+    "On-demand": 4,
+    "Thesis": 5,
+    "Graduate Research": 6,
+    "Practice": 7,
+    "Blended": 8
 }
 
 level_enum_map = {
+    "N/A": -1,
+    "Beginner, initial or introductory": 0,
+    "Intermediate, developmental and applicative": 1,
+    "Advanced, practical and specialized": 2,
+    "Final stage advanced-level undergraduate": 3,
+    "Level of Master": 4,
+    "Level of Doctor": 5
+}
 
+term_enum_map = {
+    "spring semester": "0s",
+    "fall semester": "2s",
+    "spring quarter": "0q",
+    "summer quarter": "1q",
+    "fall quarter": "2q",
+    "winter quarter": "3q",
+    "full year": "f",
+    "spring": "0",
+    "summer": "1",
+    "fall": "2",
+    "winter": "3",
+    "an intensive course(spring)": "0i",
+    "an intensive course(fall)": "2i",
+    "spring term": "0t",
+    "summer term": "1t",
+    "fall term": "2t",
+    "winter term": "3t",
+    "spring term／summer term": "0t/1t",
+    "fall term／winter term": "2t/3t",
+    "summer and fall semester": "1&2s",
+    "spring semester and summer": "0s&1",
+    "full year／fall semester": "f/2s",
+    "an intensive course(spring and fall)": "0i&3i"
+}
+
+weekday_enum_map = {
+    'Sun': 0,
+    'Mon': 1,
+    'Tues': 2,
+    'Wed': 3,
+    'Thur': 4,
+    'Fri': 5,
+    'Sat': 6
 }
