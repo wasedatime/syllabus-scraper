@@ -4,7 +4,7 @@ import urllib.request as requests
 from lxml import html
 
 from scraper import hybrid, thread_only
-from scraper.const import query, header, level_enum_map, type_enum_map
+from scraper.const import query, header, level_enum_map, type_enum_map, dept_name_map
 from scraper.utils import build_url, parse_period, to_half_width, parse_min_year, \
     get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location
 
@@ -17,6 +17,8 @@ class SyllabusCrawler:
         :param engine: "thread-only" | "hybrid",
         :param worker: num of worker threads
         """
+        if dept not in dept_name_map.keys():
+            raise ValueError
         self.dept = dept
         self.task = task
         self.engine = engine

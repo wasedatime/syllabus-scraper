@@ -151,6 +151,7 @@ def parse_location(loc):
     :param loc: string
     :return: list
     """
+    # TODO extract code for renaming
     # Case 1: no location
     if loc.isspace():
         return ["undecided"]
@@ -162,7 +163,7 @@ def parse_location(loc):
             return [location_name_map[loc]]
         else:
             print(loc)
-            return [loc]
+            return [to_half_width(loc)]
     # Case 3: multiple 'period:location' separated by /
     rooms = []
     locations = loc.split('／')
@@ -175,7 +176,7 @@ def parse_location(loc):
             pass
         # Sub-case: two location records for same period
         if count >= len(rooms):
-            rooms.append(room)
+            rooms.append(to_half_width(room))
         else:
             rooms.__setitem__(count, rooms[count] + "/" + room)
         return rooms
@@ -240,5 +241,4 @@ def to_enum(enum_map):
         except KeyError:
             print(data)
             return -1
-
     return map_to_int
