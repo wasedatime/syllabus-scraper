@@ -8,6 +8,13 @@ from scraper.const import location_name_map, dept_name_map, query, eval_type_map
 
 
 def scrape_info(parsed, key, fn):
+    """
+    Extract info from parsed and let it processed by fn
+    :param parsed: parsed html section
+    :param key: category of info
+    :param fn: function used to transform data
+    :return: scraped infomation
+    """
     if not fn:
         return parsed.xpath(query[key])[0]
     return fn(parsed.xpath(query[key])[0])
@@ -102,6 +109,12 @@ def get_syllabus_texts(course_html, row_name=None):
 
 
 def merge_period_location(periods, locations):
+    """
+    Join location with period
+    :param periods: list
+    :param locations: list
+    :return: array of dict
+    """
     occurrences = []
     if len(locations) == 1:
         for p in periods:
@@ -115,51 +128,72 @@ def merge_period_location(periods, locations):
 
 
 def parse_min_year(eligible_year):
-    if eligible_year == "" or eligible_year is None:
-        return ""
+    """
+    Parse minimum eligible year
+    :param eligible_year: string
+    :return: int
+    """
+    if not eligible_year:
+        return -1
     if eligible_year[0].isdigit:
-        return eligible_year[0]
+        return int(eligible_year[0])
     return -1
 
 
 def parse_location(loc):
-    # TODO Fix bug
+    """
+    Parse a series of locations
+    :param loc: string
+    :return: list
+    """
+    # Case 1: no location
     if loc.isspace():
         return ["undecided"]
-    if re.fullmatch(r"^[\d]+-[\dA-Z-]+$", loc):
-        return [loc]
-    elif loc in location_name_map.keys():
-        return [location_name_map[loc]]
-    else:
-        rooms = []
-        try:
-            locations = loc.split('／')
-            for l in locations:
-                match = re.search(r'0(\d):(.*)', l)
-                count, room = int(match.group(1)) - 1, match.group(2)
-                if count >= len(rooms):
-                    rooms.append(room)
-                else:
-                    rooms.__setitem__(count, rooms[count] + "/" + room)
-            return rooms
-        except ValueError:
+    # Case 2: a single location
+    if len(loc.split('／')) == 1:
+        if re.fullmatch(r"^[\d]+-[\dA-Z-]+$", loc):
+            return [loc]
+        elif loc in location_name_map.keys():
+            return [location_name_map[loc]]
+        else:
             print(loc)
             return [loc]
+    # Case 3: multiple 'period:location' separated by /
+    rooms = []
+    locations = loc.split('／')
+    for l in locations:
+        match = re.search(r'0(\d):(.*)', l)
+        count, room = int(match.group(1)) - 1, match.group(2)
+        try:
+            room = location_name_map[room]
+        except KeyError:
+            pass
+        # Sub-case: two location records for same period
+        if count >= len(rooms):
+            rooms.append(room)
+        else:
+            rooms.__setitem__(count, rooms[count] + "/" + room)
+        return rooms
 
 
 def parse_term(schedule):
+    """
+    Parse the term from string 'term  day/period'
+    :param schedule: string
+    :return: string(encoded_term)
+    """
     try:
         (term, _) = schedule.split(u'\xa0'u'\xa0', 1)
     except ValueError:
         print(schedule)
-        return -1
+        return "undecided"
     return to_enum(term_enum_map)(term)
 
 
 def parse_period(schedule):
     """
-    Extract term and occurrences(day and period) from raw data
-    :param o: raw string
+    Extract day and period from raw data
+    :param schedule: string
     :return: term and occurrence(list)
     """
     # TODO optimize code structure
@@ -190,14 +224,14 @@ def parse_period(schedule):
     return occurrences
 
 
-def to_enum(map):
+def to_enum(enum_map):
     def map_to_int(data):
         if not data:
             return -1
         if data == u'\xa0':
             return -1
         try:
-            return map[data]
+            return enum_map[data]
         except KeyError:
             print(data)
             return -1
