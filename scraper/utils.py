@@ -63,8 +63,10 @@ def get_eval_criteria(parsed):
         return []
     evals = []
     rows = table.xpath('table//tr')
+    # Case 1: the only row is the table header
     if len(rows) < 2:
         return []
+    # Case 2: 2 or more rows
     for r in rows[1:]:
         elem = r.getchildren()
         kind = elem[0].text
@@ -116,10 +118,13 @@ def merge_period_location(periods, locations):
     :return: array of dict
     """
     occurrences = []
+    # Case 1: multiple periods but only one location
     if len(locations) == 1:
         for p in periods:
             p["location"] = locations[0]
         return periods
+    # TODO find other cases
+    # Case 2: More no. of periods than no. of locations
     zipped = list(itertools.zip_longest(periods, locations))
     for (p, loc) in zipped:
         p["location"] = loc
