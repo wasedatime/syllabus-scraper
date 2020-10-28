@@ -1,12 +1,12 @@
-import urllib.request as requests
 import re
+import urllib.request as requests
 
 from lxml import html
 
 from scraper import hybrid, thread_only
 from scraper.const import query, header, level_enum_map, type_enum_map
-from scraper.utils import build_url, parse_occurrences, to_half_width, rename_location, parse_min_year, \
-    get_syllabus_texts, get_eval_criteria, to_enum
+from scraper.utils import build_url, parse_period, to_half_width, parse_min_year, \
+    get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location
 
 
 class SyllabusCrawler:
@@ -95,26 +95,21 @@ class SyllabusCrawler:
         info_en = parsed_en.xpath(query["info_table"])[0]
         info_jp = parsed_jp.xpath(query["info_table"])[0]
         # TODO optimize code structure
-        term, occ = parse_occurrences(
-            info_en.xpath(query["occurrence"])[0],
-            rename_location(info_en.xpath(query["classroom"])[0])
-        )
-        evals = get_eval_criteria(parsed_en)
-
+        locations = scrape_info(info_en, 'classroom', parse_location)
+        periods = scrape_info(info_en, 'occurrence', parse_period)
         return {
             "id": course_id,
-            "title": info_en.xpath(query["title"])[0],
-            "title_jp": to_half_width(info_jp.xpath(query["title"])[0]),
-            "instructor": to_half_width(info_en.xpath(query["instructor"])[0]),
-            "instructor_jp": to_half_width(info_jp.xpath(query["instructor"])[0]),
-            "lang": info_en.xpath(query["lang"])[0],
-            "type": to_enum(type_enum_map, info_en.xpath(query["type"])[0]),
-            "term": term,
-            "occurrences": occ,
-            "location": rename_location(info_en.xpath(query["classroom"])[0]),
-            "min_year": parse_min_year(info_en.xpath(query["min_year"])[0]),
-            "category": to_half_width(info_en.xpath(query["category"])[0]),
-            "credit": info_en.xpath(query["credit"])[0],
-            "level": to_enum(level_enum_map,info_en.xpath(query["level"])[0]),
-            "evals": evals
+            "title": scrape_info(info_en, 'title', to_half_width),
+            "title_jp": scrape_info(info_jp, 'title', to_half_width),
+            "instructor": scrape_info(info_en, 'instructor', to_half_width),
+            "instructor_jp": scrape_info(info_jp, 'instructor', to_half_width),
+            "lang": scrape_info(info_en, 'lang', None),
+            "type": scrape_info(info_en, 'type', to_enum(type_enum_map)),
+            "term": scrape_info(info_en, 'occurrence', parse_term),
+            "occurrences": merge_period_location(periods, locations),
+            "min_year": scrape_info(info_en, 'min_year', parse_min_year),
+            "category": scrape_info(info_en, 'category', to_half_width),
+            "credit": scrape_info(info_en, 'credit', None),
+            "level": scrape_info(info_en, 'level', to_enum(level_enum_map)),
+            "evals": get_eval_criteria(parsed_en)
         }

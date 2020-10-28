@@ -5,7 +5,7 @@ from aiohttp import ClientSession
 from lxml import html
 
 from scraper.const import query, header
-from scraper.utils import to_half_width, rename_location, parse_min_year, parse_occurrences, build_url
+from scraper.utils import to_half_width, parse_location, parse_min_year, parse_period, build_url
 
 
 async def fetch(c, lang, session):
@@ -19,7 +19,7 @@ async def scrape_en(course_id, session):
     en = await fetch(course_id, 'en', session)
     parsed_en = html.fromstring(en)
     info_en = parsed_en.xpath(query["info_table"])[0]
-    term, occ = parse_occurrences(info_en.xpath(query["occurrence"])[0])
+    term, occ = parse_period(info_en.xpath(query["occurrence"])[0])
     return {
         "id": course_id,
         "title": info_en.xpath(query["title"])[0],
@@ -27,7 +27,7 @@ async def scrape_en(course_id, session):
         "lang": info_en.xpath(query["lang"])[0],
         "term": term,
         "occurrences": occ,
-        "location": rename_location(info_en.xpath(query["classroom"])[0]),
+        "location": parse_location(info_en.xpath(query["classroom"])[0]),
         "min_year": parse_min_year(info_en.xpath(query["min_year"])[0])
     }
 

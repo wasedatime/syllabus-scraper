@@ -1,28 +1,16 @@
 import datetime
 import re
 
+import itertools
 import unicodedata
-from lxml import html
 
 from scraper.const import location_name_map, dept_name_map, query, eval_type_map, weekday_enum_map, term_enum_map
 
 
-def rename_location(loc):
-    """
-    Renames the location of classrooms
-    :param loc: location
-    :return: location after renaming
-    """
-    # TODO optimize code structure
-    if loc.isspace():
-        return "undecided"
-    if re.fullmatch(r"^[\d]+-[\dA-Z-]+$", loc) is not None:
-        return loc
-    elif loc in location_name_map.keys():
-        return location_name_map[loc]
-    else:
-        print(loc)
-        return loc
+def scrape_info(parsed, key, fn):
+    if not fn:
+        return parsed.xpath(query[key])[0]
+    return fn(parsed.xpath(query[key])[0])
 
 
 def build_url(dept=None, page=1, lang="en", course_id=None):
@@ -80,7 +68,7 @@ def get_eval_criteria(parsed):
             print(percent)
         criteria = to_half_width(elem[2].text)
         evals.append({
-            "type": to_enum(eval_type_map, kind),
+            "type": to_enum(eval_type_map)(kind),
             "percent": percent,
             "criteria": criteria
         })
@@ -113,6 +101,19 @@ def get_syllabus_texts(course_html, row_name=None):
     return None
 
 
+def merge_period_location(periods, locations):
+    occurrences = []
+    if len(locations) == 1:
+        for p in periods:
+            p["location"] = locations[0]
+        return periods
+    zipped = list(itertools.zip_longest(periods, locations))
+    for (p, loc) in zipped:
+        p["location"] = loc
+        occurrences.append(p)
+    return occurrences
+
+
 def parse_min_year(eligible_year):
     if eligible_year == "" or eligible_year is None:
         return ""
@@ -121,7 +122,41 @@ def parse_min_year(eligible_year):
     return -1
 
 
-def parse_occurrences(o, loc):
+def parse_location(loc):
+    # TODO Fix bug
+    if loc.isspace():
+        return ["undecided"]
+    if re.fullmatch(r"^[\d]+-[\dA-Z-]+$", loc):
+        return [loc]
+    elif loc in location_name_map.keys():
+        return [location_name_map[loc]]
+    else:
+        rooms = []
+        try:
+            locations = loc.split('／')
+            for l in locations:
+                match = re.search(r'0(\d):(.*)', l)
+                count, room = int(match.group(1)) - 1, match.group(2)
+                if count >= len(rooms):
+                    rooms.append(room)
+                else:
+                    rooms.__setitem__(count, rooms[count] + "/" + room)
+            return rooms
+        except ValueError:
+            print(loc)
+            return [loc]
+
+
+def parse_term(schedule):
+    try:
+        (term, _) = schedule.split(u'\xa0'u'\xa0', 1)
+    except ValueError:
+        print(schedule)
+        return -1
+    return to_enum(term_enum_map)(term)
+
+
+def parse_period(schedule):
     """
     Extract term and occurrences(day and period) from raw data
     :param o: raw string
@@ -129,20 +164,19 @@ def parse_occurrences(o, loc):
     """
     # TODO optimize code structure
     try:
-        (term, occ) = o.split(u'\xa0'u'\xa0', 1)
+        (_, occ) = schedule.split(u'\xa0'u'\xa0', 1)
     except ValueError:
-        print(o)
-        return o, []
-    term = to_enum(term_enum_map, term)
+        print(schedule)
+        return []
     if occ == "othersothers":
-        return term, [{"day": -1, "period": -1}]
+        return [{"day": -1, "period": -1}]
     if occ == "othersOn demand":
-        return term, [{"day": -1, "period": 0}]
+        return [{"day": -1, "period": 0}]
     occ_matches = re.finditer(r'(Mon|Tues|Wed|Thur|Fri|Sat|Sun)\.(\d-\d|\d|On demand)', occ)
     occurrences = []
     for match in occ_matches:
         day, period = match.group(1), match.group(2)
-        day = to_enum(weekday_enum_map, day)
+        day = to_enum(weekday_enum_map)(day)
         if period is None:
             period = -1
         elif period == "On demand":
@@ -151,20 +185,21 @@ def parse_occurrences(o, loc):
             period = int(period)
         else:
             p1, p2 = period.split('-', 1)
-            occurrences.append({"day": day, "period": p1})
-            occurrences.append({"day": day, "period": p2})
-            continue
+            period = int(p1) * 10 + int(p2)
         occurrences.append({"day": day, "period": period})
-    return term, occurrences
+    return occurrences
 
 
-def to_enum(map, data):
-    if not data:
-        return -1
-    if data == u'\xa0':
-        return -1
-    try:
-        return map[data]
-    except KeyError:
-        print(data)
-        return -1
+def to_enum(map):
+    def map_to_int(data):
+        if not data:
+            return -1
+        if data == u'\xa0':
+            return -1
+        try:
+            return map[data]
+        except KeyError:
+            print(data)
+            return -1
+
+    return map_to_int

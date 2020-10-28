@@ -13,6 +13,7 @@ def handler(event, context):
     """
     return None
 
+
 if __name__ == '__main__':
     dept = "FSE"
     syllabus_scraper = SyllabusCrawler(dept=dept, worker=32)
