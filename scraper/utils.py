@@ -13,7 +13,7 @@ def scrape_info(parsed, key, fn):
     :param parsed: parsed html section
     :param key: category of info
     :param fn: function used to transform data
-    :return: scraped infomation
+    :return: scraped information
     """
     if not fn:
         return parsed.xpath(query[key])[0]
@@ -161,7 +161,6 @@ def parse_location(loc):
     :param loc: string
     :return: list
     """
-    # TODO extract code for renaming
     # Case 1: no location
     if loc.isspace():
         return ["undecided"]
