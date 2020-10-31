@@ -145,6 +145,16 @@ def parse_min_year(eligible_year):
     return -1
 
 
+def rename_location(loc):
+    if re.fullmatch(r"^[\d]+-[\dA-Z-]+$", loc):
+        return loc
+    elif loc in location_name_map.keys():
+        return location_name_map[loc]
+    else:
+        print(loc)
+        return to_half_width(loc)
+
+
 def parse_location(loc):
     """
     Parse a series of locations
@@ -157,28 +167,19 @@ def parse_location(loc):
         return ["undecided"]
     # Case 2: a single location
     if len(loc.split('／')) == 1:
-        if re.fullmatch(r"^[\d]+-[\dA-Z-]+$", loc):
-            return [loc]
-        elif loc in location_name_map.keys():
-            return [location_name_map[loc]]
-        else:
-            print(loc)
-            return [to_half_width(loc)]
+        return [rename_location(loc)]
     # Case 3: multiple 'period:location' separated by /
     rooms = []
     locations = loc.split('／')
     for l in locations:
         match = re.search(r'0(\d):(.*)', l)
-        count, room = int(match.group(1)) - 1, match.group(2)
-        try:
-            room = location_name_map[room]
-        except KeyError:
-            pass
+        count, classroom = int(match.group(1)) - 1, match.group(2)
+        classroom = rename_location(classroom)
         # Sub-case: two location records for same period
         if count >= len(rooms):
-            rooms.append(to_half_width(room))
+            rooms.append(classroom)
         else:
-            rooms.__setitem__(count, rooms[count] + "/" + room)
+            rooms.__setitem__(count, rooms[count] + "/" + classroom)
         return rooms
 
 
@@ -241,4 +242,5 @@ def to_enum(enum_map):
         except KeyError:
             print(data)
             return -1
+
     return map_to_int
