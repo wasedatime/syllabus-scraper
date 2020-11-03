@@ -6,7 +6,7 @@ from lxml import html
 from scraper import hybrid, thread_only
 from scraper.const import query, header, level_enum_map, type_enum_map, dept_name_map, lang_enum_map
 from scraper.utils import build_url, parse_period, to_half_width, parse_min_year, \
-    get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location
+    get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location, scrape_text
 
 
 class SyllabusCrawler:
@@ -117,6 +117,6 @@ class SyllabusCrawler:
             "m": scrape_info(info_en, 'level', to_enum(level_enum_map)),
             "n": get_eval_criteria(parsed_en),
             "o": scrape_info(info_en, 'code', None),
-            "p": "subtitle",
+            "p": scrape_text(parsed_en, "Subtitle", to_half_width)
         }
         # code and has_reviews are not implemented yet

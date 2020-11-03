@@ -84,6 +84,13 @@ def get_eval_criteria(parsed):
     return evals
 
 
+def scrape_text(parsed, row_name, fn):
+    element = get_syllabus_texts(parsed, row_name)
+    if element is not None:
+        return fn(element.text)
+    return ""
+
+
 def get_syllabus_texts(course_html, row_name=None):
     """
     Get all the "Syllabus Information" in course details page
