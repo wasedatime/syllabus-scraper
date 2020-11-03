@@ -77,9 +77,9 @@ def get_eval_criteria(parsed):
             print(percent)
         criteria = to_half_width(elem[2].text)
         evals.append({
-            "type": to_enum(eval_type_map)(kind),
-            "percent": percent,
-            "criteria": criteria
+            "t": to_enum(eval_type_map)(kind),
+            "p": percent,
+            "c": criteria
         })
     return evals
 
@@ -121,13 +121,13 @@ def merge_period_location(periods, locations):
     # Case 1: multiple periods but only one location
     if len(locations) == 1:
         for p in periods:
-            p["location"] = locations[0]
+            p["l"] = locations[0]
         return periods
     # TODO find other cases
     # Case 2: More no. of periods than no. of locations
     zipped = list(itertools.zip_longest(periods, locations))
     for (p, loc) in zipped:
-        p["location"] = loc
+        p["l"] = loc
         occurrences.append(p)
     return occurrences
 
@@ -209,9 +209,9 @@ def parse_period(schedule):
         print(schedule)
         return []
     if occ == "othersothers":
-        return [{"day": -1, "period": -1}]
+        return [{"d": -1, "p": -1}]
     if occ == "othersOn demand":
-        return [{"day": -1, "period": 0}]
+        return [{"d": -1, "p": 0}]
     occ_matches = re.finditer(r'(Mon|Tues|Wed|Thur|Fri|Sat|Sun)\.(\d-\d|\d|On demand)', occ)
     occurrences = []
     for match in occ_matches:
@@ -226,7 +226,7 @@ def parse_period(schedule):
         else:
             p1, p2 = period.split('-', 1)
             period = int(p1) * 10 + int(p2)
-        occurrences.append({"day": day, "period": period})
+        occurrences.append({"d": day, "p": period})
     return occurrences
 
 
