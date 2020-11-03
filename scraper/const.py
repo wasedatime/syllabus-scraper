@@ -211,9 +211,9 @@ lang_enum_map = {
     'Korean': 7,
     'Russian': 8,
     'Italian': 9,
-    'English/Spanish': 9,
-    'English/Chinese': 10,
-    'English/French': 11,
-    'English/Korean': 12,
-    'other': 13
+    'English/Spanish': 10,
+    'English/Chinese': 11,
+    'English/French': 12,
+    'English/Korean': 13,
+    'other': 14
 }
