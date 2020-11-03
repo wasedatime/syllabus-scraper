@@ -4,7 +4,7 @@ import urllib.request as requests
 from lxml import html
 
 from scraper import hybrid, thread_only
-from scraper.const import query, header, level_enum_map, type_enum_map, dept_name_map
+from scraper.const import query, header, level_enum_map, type_enum_map, dept_name_map, lang_enum_map
 from scraper.utils import build_url, parse_period, to_half_width, parse_min_year, \
     get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location
 
@@ -69,26 +69,26 @@ class SyllabusCrawler:
         :param course_id:
         :return: dict :=
             {
-                "id": 'string',
-                "title": 'string',
-                "title_jp": 'string'
-                "instructor": 'string',
-                "instructor_jp": 'string',
-                "lang": 'enum',
-                "type": 'enum',
-                "term": 'enum',
-                "occurrences": [{
-                                "day":'integer',
-                                "period":'integer',
-                                "location":'string'
+                "a": 'string', # id
+                "b": 'string', # title
+                "c": 'string' # title_jp
+                "d": 'string', # instructor
+                "e": 'string', # instructor_jp
+                "f": 'enum', # lang
+                "g": 'enum', # type
+                "h": 'enum', # term
+                "i": [{ # occurrences
+                                "d":'integer', # day
+                                "p":'integer', # period
+                                "l":'string' # location
                                 }],
-                "min_year": 'int',
-                "category": 'enum',
-                "credit": 'int',
-                "level": 'enum',
-                "eval": 'array',
-                "code": 'string',
-                "has_reviews": 'boolean'
+                "j": 'int', # min_year
+                "k": 'enum', # category
+                "l": 'int', # credit
+                "m": 'enum', # level
+                "n": 'array', # eval
+                "o": 'string', # code
+                "p": 'string', # subtitle
             }
         """
         # requirements = self.task["additional_info"]
@@ -102,21 +102,21 @@ class SyllabusCrawler:
         locations = scrape_info(info_en, 'classroom', parse_location)
         periods = scrape_info(info_en, 'occurrence', parse_period)
         return {
-            "id": course_id,
-            "t": scrape_info(info_en, 'title', to_half_width),
-            "tj": scrape_info(info_jp, 'title', to_half_width),
-            "i": scrape_info(info_en, 'instructor', to_half_width),
-            "ij": scrape_info(info_jp, 'instructor', to_half_width),
-            "l": scrape_info(info_en, 'lang', None),
-            "ty": scrape_info(info_en, 'type', to_enum(type_enum_map)),
-            "tm": scrape_info(info_en, 'occurrence', parse_term),
-            "os": merge_period_location(periods, locations),
-            "m": scrape_info(info_en, 'min_year', parse_min_year),
-            "ca": scrape_info(info_en, 'category', to_half_width),
-            "cr": scrape_info(info_en, 'credit', None),
-            "lv": scrape_info(info_en, 'level', to_enum(level_enum_map)),
-            "ev": get_eval_criteria(parsed_en),
-            "c": "",
-            "h": 0
+            "a": course_id,
+            "b": scrape_info(info_en, 'title', to_half_width),
+            "c": scrape_info(info_jp, 'title', to_half_width),
+            "d": scrape_info(info_en, 'instructor', to_half_width),
+            "e": scrape_info(info_jp, 'instructor', to_half_width),
+            "f": scrape_info(info_en, 'lang', to_enum(lang_enum_map)),
+            "g": scrape_info(info_en, 'type', to_enum(type_enum_map)),
+            "h": scrape_info(info_en, 'occurrence', parse_term),
+            "i": merge_period_location(periods, locations),
+            "j": scrape_info(info_en, 'min_year', parse_min_year),
+            "k": scrape_info(info_en, 'category', to_half_width),
+            "l": scrape_info(info_en, 'credit', None),
+            "m": scrape_info(info_en, 'level', to_enum(level_enum_map)),
+            "n": get_eval_criteria(parsed_en),
+            "o": scrape_info(info_en, 'code', None),
+            "p": "subtitle",
         }
         # code and has_reviews are not implemented yet

@@ -53,9 +53,9 @@ def get_eval_criteria(parsed):
     Get the evaluation criteria from course detail page
     :return: array :=
         [{
-            "type": 'enum'
-            "percent": 'int'
-            "criteria": 'string'
+            "t": 'enum' # type
+            "p": 'int' # percent
+            "c": 'string' #criteria
         }]
     """
     table = get_syllabus_texts(parsed, "Evaluation")
