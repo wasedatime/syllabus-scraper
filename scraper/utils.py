@@ -4,7 +4,8 @@ import re
 import itertools
 import unicodedata
 
-from scraper.const import location_name_map, dept_name_map, query, eval_type_map, weekday_enum_map, term_enum_map
+from scraper.const import location_name_map, dept_name_map, query, eval_type_map, weekday_enum_map, term_enum_map, \
+    lang_enum_map
 
 
 def scrape_info(parsed, key, fn):
@@ -187,6 +188,12 @@ def parse_location(loc):
         else:
             rooms.__setitem__(count, rooms[count] + "/" + classroom)
         return rooms
+
+
+def parse_lang(lang):
+    langs = lang.split('/')
+    lang_list = [to_enum(lang_enum_map)(l) for l in langs]
+    return lang_list
 
 
 def parse_term(schedule):

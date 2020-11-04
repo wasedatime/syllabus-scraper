@@ -4,9 +4,9 @@ import urllib.request as requests
 from lxml import html
 
 from scraper import hybrid, thread_only
-from scraper.const import query, header, level_enum_map, type_enum_map, dept_name_map, lang_enum_map
+from scraper.const import query, header, level_enum_map, type_enum_map, dept_name_map
 from scraper.utils import build_url, parse_period, to_half_width, parse_min_year, \
-    get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location, scrape_text
+    get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location, scrape_text, parse_lang
 
 
 class SyllabusCrawler:
@@ -107,7 +107,7 @@ class SyllabusCrawler:
             "c": scrape_info(info_jp, 'title', to_half_width),
             "d": scrape_info(info_en, 'instructor', to_half_width),
             "e": scrape_info(info_jp, 'instructor', to_half_width),
-            "f": scrape_info(info_en, 'lang', to_enum(lang_enum_map)),
+            "f": scrape_info(info_en, 'lang', parse_lang),
             "g": scrape_info(info_en, 'type', to_enum(type_enum_map)),
             "h": scrape_info(info_en, 'occurrence', parse_term),
             "i": merge_period_location(periods, locations),
