@@ -4,7 +4,8 @@ import re
 import itertools
 import unicodedata
 
-from scraper.const import location_name_map, dept_name_map, query, eval_type_map, weekday_enum_map, term_enum_map
+from scraper.const import location_name_map, dept_name_map, query, eval_type_map, weekday_enum_map, term_enum_map, \
+    lang_enum_map
 
 
 def scrape_info(parsed, key, fn):
@@ -53,9 +54,9 @@ def get_eval_criteria(parsed):
     Get the evaluation criteria from course detail page
     :return: array :=
         [{
-            "type": 'enum'
-            "percent": 'int'
-            "criteria": 'string'
+            "t": 'enum' # type
+            "p": 'int' # percent
+            "c": 'string' #criteria
         }]
     """
     table = get_syllabus_texts(parsed, "Evaluation")
@@ -77,11 +78,18 @@ def get_eval_criteria(parsed):
             print(percent)
         criteria = to_half_width(elem[2].text)
         evals.append({
-            "type": to_enum(eval_type_map)(kind),
-            "percent": percent,
-            "criteria": criteria
+            "t": to_enum(eval_type_map)(kind),
+            "p": percent,
+            "c": criteria
         })
     return evals
+
+
+def scrape_text(parsed, row_name, fn):
+    element = get_syllabus_texts(parsed, row_name)
+    if element is not None:
+        return fn(element.text)
+    return ""
 
 
 def get_syllabus_texts(course_html, row_name=None):
@@ -121,13 +129,13 @@ def merge_period_location(periods, locations):
     # Case 1: multiple periods but only one location
     if len(locations) == 1:
         for p in periods:
-            p["location"] = locations[0]
+            p["l"] = locations[0]
         return periods
     # TODO find other cases
     # Case 2: More no. of periods than no. of locations
     zipped = list(itertools.zip_longest(periods, locations))
     for (p, loc) in zipped:
-        p["location"] = loc
+        p["l"] = loc
         occurrences.append(p)
     return occurrences
 
@@ -182,6 +190,12 @@ def parse_location(loc):
         return rooms
 
 
+def parse_lang(lang):
+    langs = lang.split('/')
+    lang_list = [to_enum(lang_enum_map)(l) for l in langs]
+    return lang_list
+
+
 def parse_term(schedule):
     """
     Parse the term from string 'term  day/period'
@@ -209,9 +223,9 @@ def parse_period(schedule):
         print(schedule)
         return []
     if occ == "othersothers":
-        return [{"day": -1, "period": -1}]
+        return [{"d": -1, "p": -1}]
     if occ == "othersOn demand":
-        return [{"day": -1, "period": 0}]
+        return [{"d": -1, "p": 0}]
     occ_matches = re.finditer(r'(Mon|Tues|Wed|Thur|Fri|Sat|Sun)\.(\d-\d|\d|On demand)', occ)
     occurrences = []
     for match in occ_matches:
@@ -226,7 +240,7 @@ def parse_period(schedule):
         else:
             p1, p2 = period.split('-', 1)
             period = int(p1) * 10 + int(p2)
-        occurrences.append({"day": day, "period": period})
+        occurrences.append({"d": day, "p": period})
     return occurrences
 
 

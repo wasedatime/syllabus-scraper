@@ -198,3 +198,17 @@ weekday_enum_map = {
     'Fri': 5,
     'Sat': 6
 }
+
+lang_enum_map = {
+    'N/A': -1,
+    'Japanese': 0,
+    'English': 1,
+    'German': 2,
+    'French': 3,
+    'Chinese': 4,
+    'Spanish': 5,
+    'Korean': 6,
+    'Russian': 7,
+    'Italian': 8,
+    'other': 9
+}
