@@ -244,6 +244,12 @@ def parse_period(schedule):
     return occurrences
 
 
+def parse_credit(credit):
+    if credit.isdigit:
+        return int(credit)
+    return -1
+
+
 def to_enum(enum_map):
     def map_to_int(data):
         if not data:

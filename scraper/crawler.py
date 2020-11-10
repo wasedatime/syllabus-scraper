@@ -119,4 +119,3 @@ class SyllabusCrawler:
             "o": scrape_info(info_en, 'code', None),
             "p": scrape_text(parsed_en, "Subtitle", to_half_width)
         }
-        # code and has_reviews are not implemented yet
