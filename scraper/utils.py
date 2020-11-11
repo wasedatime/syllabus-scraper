@@ -148,7 +148,7 @@ def parse_min_year(eligible_year):
     """
     if not eligible_year:
         return -1
-    if eligible_year[0].isdigit:
+    if eligible_year[0].isdigit():
         return int(eligible_year[0])
     return -1
 
@@ -245,7 +245,7 @@ def parse_period(schedule):
 
 
 def parse_credit(credit):
-    if credit.isdigit:
+    if credit.isdigit():
         return int(credit)
     return -1
 
