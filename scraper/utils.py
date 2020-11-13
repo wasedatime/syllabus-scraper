@@ -4,7 +4,7 @@ import re
 import itertools
 import unicodedata
 
-from scraper.const import location_name_map, dept_name_map, query, eval_type_map, weekday_enum_map, term_enum_map, \
+from scraper.const import location_name_map, school_name_map, query, eval_type_map, weekday_enum_map, term_enum_map, \
     lang_enum_map
 
 
@@ -32,7 +32,7 @@ def build_url(dept=None, page=1, lang="en", course_id=None):
     """
     if course_id:
         return f"https://www.wsl.waseda.jp/syllabus/JAA104.php?pKey={course_id}&pLng={lang}"
-    param = dept_name_map[dept]["param"]
+    param = school_name_map[dept]["param"]
     year = datetime.datetime.now().year
     return f"https://www.wsl.waseda.jp/syllabus/JAA103.php?pYear={year}&p_gakubu={param}&p_page={page}&p_number=100" \
            f"&pLng={lang} "

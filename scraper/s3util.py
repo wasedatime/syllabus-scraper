@@ -1,13 +1,14 @@
-import boto3
-import os
 import json
+import os
+
+import boto3
 
 
-def upload_to_s3(syllabus, dept):
+def upload_to_s3(syllabus, school):
     """
     Upload the syllabus info of the department to s3
     :param syllabus: iterator of course info
-    :param dept: abbr of the department. e.g. "PSE"
+    :param school: abbr of the department. e.g. "PSE"
     :return: dict :=
         {
             'Expiration': 'string',
@@ -22,10 +23,10 @@ def upload_to_s3(syllabus, dept):
         }
     """
     s3 = boto3.resource('s3', region_name="ap-northeast-1")
-    syllabus_object = s3.Object(os.getenv('BUCKET_NAME'), os.getenv('OBJECT_PATH') + dept + '.json')
+    syllabus_object = s3.Object(os.getenv('BUCKET_NAME'), os.getenv('OBJECT_PATH') + school + '.json')
     resp = syllabus_object.put(
         ACL='public-read',
-        Body=bytes(json.dumps(syllabus).encode('UTF-8')),
+        Body=bytes(json.dumps(list(syllabus)).encode('UTF-8')),
         ContentType='application/json',
         CacheControl='max-age=86400, must-revalidate'
     )

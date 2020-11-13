@@ -1,6 +1,6 @@
 import random
 
-dept_name_map = {
+school_name_map = {
     "PSE": {"jp": "政経", "en": "Schl Political Sci/Econo", "param": "111973"},
     "LAW": {"jp": "法学", "en": "Schl Law", "param": "121973"},
     "EDU": {"jp": "教育", "en": "Schl Edu", "param": "151949"},
