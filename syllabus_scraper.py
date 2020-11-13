@@ -19,6 +19,6 @@ def handler(event, context):
         syllabus_info = SyllabusCrawler(school=school, worker=32).execute()
         logger.info(f"Finished scraping school: {school}")
         logger.info(f"Uploading {school}.json to S3 ")
-        s3_resp = upload_to_s3(syllabus_info, school)
-        logger.info(f"Successfully uploaded {school}.json, Etag: {s3_resp['Etag']}")
+        upload_to_s3(syllabus_info, school)
+        logger.info(f"Successfully uploaded {school}.json")
     return None

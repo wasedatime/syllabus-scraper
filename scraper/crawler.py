@@ -6,7 +6,8 @@ from lxml import html
 from scraper import hybrid, thread_only
 from scraper.const import query, header, level_enum_map, type_enum_map, school_name_map
 from scraper.utils import build_url, parse_period, to_half_width, parse_min_year, \
-    get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location, scrape_text, parse_lang
+    get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location, scrape_text, parse_lang, \
+    parse_credit
 
 
 class SyllabusCrawler:
@@ -113,7 +114,7 @@ class SyllabusCrawler:
             "i": merge_period_location(periods, locations),
             "j": scrape_info(info_en, 'min_year', parse_min_year),
             "k": scrape_info(info_en, 'category', to_half_width),
-            "l": scrape_info(info_en, 'credit', None),
+            "l": scrape_info(info_en, 'credit', parse_credit),
             "m": scrape_info(info_en, 'level', to_enum(level_enum_map)),
             "n": get_eval_criteria(parsed_en),
             "o": scrape_info(info_en, 'code', None),

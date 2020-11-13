@@ -2,6 +2,7 @@ import json
 import os
 
 import boto3
+from botocore.config import Config
 
 
 def upload_to_s3(syllabus, school):
@@ -22,12 +23,12 @@ def upload_to_s3(syllabus, school):
             'RequestCharged': 'requester'
         }
     """
-    s3 = boto3.resource('s3', region_name="ap-northeast-1")
+    s3 = boto3.resource('s3', region_name="ap-northeast-1", verify=False, config=Config(signature_version='s3v4'))
     syllabus_object = s3.Object(os.getenv('BUCKET_NAME'), os.getenv('OBJECT_PATH') + school + '.json')
     resp = syllabus_object.put(
         ACL='public-read',
         Body=bytes(json.dumps(list(syllabus)).encode('UTF-8')),
-        ContentType='application/json',
+        ContentType='application/json; charset=utf-8',
         CacheControl='max-age=86400, must-revalidate'
     )
     return resp
