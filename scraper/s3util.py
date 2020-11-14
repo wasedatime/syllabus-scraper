@@ -2,6 +2,7 @@ import json
 import os
 
 import boto3
+import zlib
 from botocore.config import Config
 
 
@@ -25,10 +26,12 @@ def upload_to_s3(syllabus, school):
     """
     s3 = boto3.resource('s3', region_name="ap-northeast-1", verify=False, config=Config(signature_version='s3v4'))
     syllabus_object = s3.Object(os.getenv('BUCKET_NAME'), os.getenv('OBJECT_PATH') + school + '.json')
+    compressed = zlib.compress(bytes(json.dumps(list(syllabus)).encode('UTF-8')))
     resp = syllabus_object.put(
         ACL='public-read',
-        Body=bytes(json.dumps(list(syllabus)).encode('UTF-8')),
+        Body=compressed,
         ContentType='application/json; charset=utf-8',
-        CacheControl='max-age=86400, must-revalidate'
+        CacheControl='max-age=86400, must-revalidate',
+        ContentEncoding='gzip'
     )
     return resp
