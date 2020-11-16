@@ -1,0 +1,4 @@
+# dependencies
+aiohttp
+boto3
+lxml

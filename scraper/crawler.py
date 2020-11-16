@@ -4,22 +4,23 @@ import urllib.request as requests
 from lxml import html
 
 from scraper import hybrid, thread_only
-from scraper.const import query, header, level_enum_map, type_enum_map, dept_name_map
+from scraper.const import query, header, level_enum_map, type_enum_map, school_name_map
 from scraper.utils import build_url, parse_period, to_half_width, parse_min_year, \
-    get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location, scrape_text, parse_lang
+    get_eval_criteria, to_enum, scrape_info, parse_term, parse_location, merge_period_location, scrape_text, parse_lang, \
+    parse_credit
 
 
 class SyllabusCrawler:
-    def __init__(self, dept, task=None, engine="thread-only", worker=8):
+    def __init__(self, school, task=None, engine="thread-only", worker=8):
         """
-        :param dept: department name
+        :param school: department name
         :param task: tasks to execute
         :param engine: "thread-only" | "hybrid",
         :param worker: num of worker threads
         """
-        if dept not in dept_name_map.keys():
+        if school not in school_name_map.keys():
             raise ValueError
-        self.dept = dept
+        self.school = school
         self.task = task
         self.engine = engine
         self.worker = worker
@@ -44,7 +45,7 @@ class SyllabusCrawler:
         Get the max page number for a department
         :return: int
         """
-        url = build_url(self.dept, 1, 'en')
+        url = build_url(self.school, 1, 'en')
         body = requests.urlopen(url).read()
         try:
             last = html.fromstring(body).xpath(query["page_num"])[-1]
@@ -58,7 +59,7 @@ class SyllabusCrawler:
         :param page: page number (starts from 1)
         :return: list of course ids
         """
-        req = requests.Request(url=build_url(self.dept, page + 1, 'en'), headers=header)
+        req = requests.Request(url=build_url(self.school, page + 1, 'en'), headers=header)
         resp = requests.urlopen(req).read()
         clist = html.fromstring(resp).xpath(query["course_list"])
         return [re.search(r"\w{28}", clist[i].xpath(query["course_id"])[0]).group(0) for i in range(1, len(clist))]
@@ -113,7 +114,7 @@ class SyllabusCrawler:
             "i": merge_period_location(periods, locations),
             "j": scrape_info(info_en, 'min_year', parse_min_year),
             "k": scrape_info(info_en, 'category', to_half_width),
-            "l": scrape_info(info_en, 'credit', None),
+            "l": scrape_info(info_en, 'credit', parse_credit),
             "m": scrape_info(info_en, 'level', to_enum(level_enum_map)),
             "n": get_eval_criteria(parsed_en),
             "o": scrape_info(info_en, 'code', None),

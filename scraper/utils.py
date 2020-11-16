@@ -1,11 +1,15 @@
 import datetime
+import logging
 import re
 
 import itertools
 import unicodedata
 
-from scraper.const import location_name_map, dept_name_map, query, eval_type_map, weekday_enum_map, term_enum_map, \
+from scraper.const import location_name_map, school_name_map, query, eval_type_map, weekday_enum_map, term_enum_map, \
     lang_enum_map
+
+logger = logging.getLogger()
+logger.setLevel(logging.WARNING)
 
 
 def scrape_info(parsed, key, fn):
@@ -32,7 +36,7 @@ def build_url(dept=None, page=1, lang="en", course_id=None):
     """
     if course_id:
         return f"https://www.wsl.waseda.jp/syllabus/JAA104.php?pKey={course_id}&pLng={lang}"
-    param = dept_name_map[dept]["param"]
+    param = school_name_map[dept]["param"]
     year = datetime.datetime.now().year
     return f"https://www.wsl.waseda.jp/syllabus/JAA103.php?pYear={year}&p_gakubu={param}&p_page={page}&p_number=100" \
            f"&pLng={lang} "
@@ -75,7 +79,7 @@ def get_eval_criteria(parsed):
         try:
             percent = int(percent)
         except ValueError:
-            print(percent)
+            logger.warning(f"Unable to parse percent: {percent}")
         criteria = to_half_width(elem[2].text)
         evals.append({
             "t": to_enum(eval_type_map)(kind),
@@ -159,7 +163,7 @@ def rename_location(loc):
     elif loc in location_name_map.keys():
         return location_name_map[loc]
     else:
-        print(loc)
+        logger.warning(f"Unable to parse location: {loc}")
         return to_half_width(loc)
 
 
@@ -205,7 +209,7 @@ def parse_term(schedule):
     try:
         (term, _) = schedule.split(u'\xa0'u'\xa0', 1)
     except ValueError:
-        print(schedule)
+        logger.warning(f"Unable to parse term: {schedule}")
         return "undecided"
     return to_enum(term_enum_map)(term)
 
@@ -220,7 +224,7 @@ def parse_period(schedule):
     try:
         (_, occ) = schedule.split(u'\xa0'u'\xa0', 1)
     except ValueError:
-        print(schedule)
+        logger.warning(f"Unable to parse period: {schedule}")
         return []
     if occ == "othersothers":
         return [{"d": -1, "p": -1}]
@@ -259,7 +263,7 @@ def to_enum(enum_map):
         try:
             return enum_map[data]
         except KeyError:
-            print(data)
+            logger.warning(f"Unable to map '{data}' to integer")
             return -1
 
     return map_to_int
