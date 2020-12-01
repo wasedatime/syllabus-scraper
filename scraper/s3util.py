@@ -27,9 +27,9 @@ def upload_to_s3(syllabus, school):
     syllabus_object = s3.Object(os.getenv('BUCKET_NAME'), os.getenv('OBJECT_PATH') + school + '.json')
     body = bytes(json.dumps(list(syllabus)).encode('UTF-8'))
     resp = syllabus_object.put(
-        ACL='public-read',
+        ACL='private',
         Body=body,
         ContentType='application/json; charset=utf-8',
-        CacheControl='max-age=86400, must-revalidate'
+        CacheControl='public, max-age=86400, must-revalidate'
     )
     return resp

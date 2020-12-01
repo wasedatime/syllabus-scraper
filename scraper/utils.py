@@ -209,8 +209,11 @@ def parse_term(schedule):
     try:
         (term, _) = schedule.split(u'\xa0'u'\xa0', 1)
     except ValueError:
-        logger.warning(f"Unable to parse term: {schedule}")
+        logger.warning(f"Unable to parse term from '{schedule}'")
         return "undecided"
+    if term not in term_enum_map.keys():
+        logger.error(f"Unknown term '{term}'")
+        return ""
     return to_enum(term_enum_map)(term)
 
 

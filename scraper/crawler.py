@@ -118,5 +118,6 @@ class SyllabusCrawler:
             "m": scrape_info(info_en, 'level', to_enum(level_enum_map)),
             "n": get_eval_criteria(parsed_en),
             "o": scrape_info(info_en, 'code', None),
-            "p": scrape_text(parsed_en, "Subtitle", to_half_width)
+            "p": scrape_text(parsed_en, "Subtitle", to_half_width),
+            "q": scrape_info(info_jp, 'category', to_half_width)
         }
