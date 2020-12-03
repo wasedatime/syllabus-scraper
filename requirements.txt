@@ -2,4 +2,3 @@
 aiohttp
 boto3
 lxml
-pytest

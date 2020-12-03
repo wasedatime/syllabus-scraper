@@ -14,7 +14,7 @@ install:
   - zip -g my-deployment-package.zip syllabus_scraper.py
   - zip -g my-deployment-package.zip scraper
 script:
-  - pytest tests/test.py
+  - python tests/test.py
 deploy:
   provider: lambda
   function_name: "scrape-syllabus"
