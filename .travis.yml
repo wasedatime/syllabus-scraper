@@ -8,12 +8,19 @@ install:
   - source myvenv/bin/activate
   - pip install -r requirements.txt
   - deactivate
+  - cd myvenv/lib/python3.8/site-packages
+  - zip -r my-deployment-package.zip .
+  - cd ../../../../
+  - zip -g my-deployment-package.zip syllabus_scraper.py
+  - zip -g my-deployment-package.zip scraper
 script:
-  - echo "skipping tests"
+  - pytest tests/test.py
 deploy:
   provider: lambda
   function_name: "scrape-syllabus"
   region: "ap-northeast-1"
-  handler_name: "lambda_handler"
+  handler_name: "handler"
   runtime: "python3.8"
   role: "arn:aws:iam::564383102056:role/AWSLambdaS3FullAccess"
+  zip: "fileb://my-deployment-package.zip"
+  edge: true
