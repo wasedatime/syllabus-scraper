@@ -9,10 +9,10 @@ install:
   - pip install -r requirements.txt
   - deactivate
   - cd myvenv/lib/python3.8/site-packages
-  - zip -r my-deployment-package.zip .
-  - cd ../../../../
-  - zip -g my-deployment-package.zip syllabus_scraper.py
-  - zip -g my-deployment-package.zip scraper
+  - zip -r9 ${OLDPWD}/function.zip .
+  - cd $OLDPWD
+  - zip -g function.zip syllabus_scraper.py
+  - zip -g function.zip scraper
 script:
   - python tests/test.py
 deploy:
@@ -22,7 +22,7 @@ deploy:
   handler_name: "handler"
   runtime: "python3.8"
   role: "arn:aws:iam::564383102056:role/AWSLambdaS3FullAccess"
-  zip: "fileb://my-deployment-package.zip"
+  zip: "fileb://function.zip"
   on:
     all_branches: true
   edge: true
