@@ -12,7 +12,7 @@ install:
   - zip -r9 ${OLDPWD}/function.zip .
   - cd $OLDPWD
   - zip -g function.zip syllabus_scraper.py
-  - zip -g function.zip scraper
+  - zip -g -r function.zip scraper
 script:
   - python tests/test.py
 deploy:
