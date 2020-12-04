@@ -22,7 +22,7 @@ deploy:
   handler_name: "handler"
   runtime: "python3.8"
   role: "arn:aws:iam::564383102056:role/AWSLambdaS3FullAccess"
-  zip: "fileb://function.zip"
+  zip: "function.zip"
   on:
     all_branches: true
   edge: true
