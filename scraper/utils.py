@@ -37,7 +37,9 @@ def build_url(dept=None, page=1, lang="en", course_id=None):
     if course_id:
         return f"https://www.wsl.waseda.jp/syllabus/JAA104.php?pKey={course_id}&pLng={lang}"
     param = school_name_map[dept]["param"]
-    year = datetime.datetime.now().year
+    # year = datetime.datetime.now().year
+    year = 2020 # For make unit test
+    print(f"https://www.wsl.waseda.jp/syllabus/JAA103.php?pYear={year}&p_gakubu={param}&p_page={page}&p_number=100&pLng={lang} ")
     return f"https://www.wsl.waseda.jp/syllabus/JAA103.php?pYear={year}&p_gakubu={param}&p_page={page}&p_number=100" \
            f"&pLng={lang} "
 
